@@ -24,9 +24,9 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	set(CMAKE_CXX_EXTENSIONS OFF)
 endif()
 
-# Add the executables directory:
-add_subdirectory(scripts)
 # Add the sqlite3 source code directory:
 add_subdirectory(lib/sqlite3)
 # Add the open-cbgm source code directory:
 add_subdirectory(lib/open-cbgm)
+# Add the executables directory:
+add_subdirectory(scripts)
