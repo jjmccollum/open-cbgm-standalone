@@ -1,3 +1,3 @@
 [submodule "open-cbgm"]
-	path = open-cbgm
+	path = lib/open-cbgm
 	url = https://github.com/jjmccollum/open-cbgm.git
