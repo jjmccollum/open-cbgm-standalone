@@ -14,9 +14,13 @@ SQLite databases also support fast reads and writes, and following the lead of E
 
 ## Installation and Dependencies
 
-The core open-cbgm library (https://github.com/jjmccollum/open-cbgm), along with its dependencies, is included as a Git submodule of this repository; if you do not have the submodule initialized, then it will be initialized when you begin the build process for this interface. If an update is made to the core library at a later time, then you can fetch the latest changes by running the command
+The core open-cbgm library (https://github.com/jjmccollum/open-cbgm), along with its dependencies, is included as a Git submodule of this repository; if you do not have the submodule initialized, then you must initialize it with the command
 
-    git submodule update --remote
+    git submodule update --init --recursive
+
+Subsequently, if an update is made to the core library at a later time and you want to incorporate it,then 
+
+    git submodule update --recursive --remote
 
 Because the core library serializes graph outputs as .dot files, you will need to install graphviz (https://www.graphviz.org) to convert .dot files into image files. Platform-specific instructions for installing graphviz are provided below, and directions on how to get image files from the .dot outputs can be found in the "Usage" section below.
 

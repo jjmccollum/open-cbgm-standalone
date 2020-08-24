@@ -6,6 +6,7 @@ matrix:
     - os: linux
       compiler: gcc
       script:
+        - git submodule update --init --recursive
         - mkdir build #create the directory to store the build in
         - cd build #navigate into the directory
         - cmake .. #invoke CMake, placing the build in the build directory
@@ -14,6 +15,7 @@ matrix:
     - os: osx
       compiler: clang
       script:
+        - git submodule update --init --recursive
         - mkdir build #create the directory to store the build in
         - cd build #navigate into the directory
         - cmake .. #invoke CMake, placing the build in the build directory
@@ -21,6 +23,7 @@ matrix:
     #Windows, Visual Studio
     - os: windows
       script:
+        - git submodule update --init --recursive
         - mkdir build #create the directory to store the build in
         - cd build #navigate into the directory
         - cmake .. #invoke CMake, placing the build in the build directory
@@ -28,6 +31,7 @@ matrix:
     #Windows, g++ and make via MinGW
     - os: windows
       script:
+        - git submodule update --init --recursive
         - mkdir build #create the directory to store the build in
         - cd build #navigate into the directory
         - cmake -DCMAKE_SH="CMAKE_SH-NOTFOUND" -G "MinGW Makefiles" .. #invoke CMake, placing the build in the build directory
