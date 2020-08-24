@@ -1,0 +1,34 @@
+language: cpp
+
+matrix:
+  include:
+    #Linux, g++
+    - os: linux
+      compiler: gcc
+      script:
+        - mkdir build #create the directory to store the build in
+        - cd build #navigate into the directory
+        - cmake .. #invoke CMake, placing the build in the build directory
+        - make #build using the generated Makefile
+    #MacOS, clang
+    - os: osx
+      compiler: clang
+      script:
+        - mkdir build #create the directory to store the build in
+        - cd build #navigate into the directory
+        - cmake .. #invoke CMake, placing the build in the build directory
+        - make #build using the generated Makefile
+    #Windows, Visual Studio
+    - os: windows
+      script:
+        - mkdir build #create the directory to store the build in
+        - cd build #navigate into the directory
+        - cmake .. #invoke CMake, placing the build in the build directory
+        - cmake --build . --config Debug #build in Debug mode using CMake
+    #Windows, g++ and make via MinGW
+    - os: windows
+      script:
+        - mkdir build #create the directory to store the build in
+        - cd build #navigate into the directory
+        - cmake -DCMAKE_SH="CMAKE_SH-NOTFOUND" -G "MinGW Makefiles" .. #invoke CMake, placing the build in the build directory
+        - mingw32-make #build using the generated Makefile
