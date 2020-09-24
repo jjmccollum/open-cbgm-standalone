@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 # Set the project name and version:
 project(open-cbgm-standalone 
-	VERSION 1.2.2
+	VERSION 1.3
 	DESCRIPTION "Standalone command-line interface for the open-cbgm library"
 	LANGUAGES C CXX)
 

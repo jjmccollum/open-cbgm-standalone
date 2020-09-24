@@ -15,23 +15,24 @@
 #include "cxxopts.h"
 #include "pugixml.h"
 #include "roaring.hh"
+#include "sqlite3.h"
 #include "witness.h"
 #include "apparatus.h"
 #include "variation_unit.h"
 #include "local_stemma.h"
-#include "sqlite3.h"
+
 
 using namespace std;
 
 /**
  * Creates, indexes, and populates the READINGS table.
  */
-void populate_readings_table(sqlite3 * output_db, const list<variation_unit> & variation_units) {
+void populate_readings_table(sqlite3 * output_db, const apparatus & app) {
 	int rc; //to store SQLite macros
-	cout << "Populating table READINGS..." << endl;
 	//Create the READINGS table:
 	string create_readings_sql = "DROP TABLE IF EXISTS READINGS;"
 			"CREATE TABLE READINGS ("
+			"ROW_ID INT NOT NULL, "
 			"VARIATION_UNIT TEXT NOT NULL, "
 			"READING TEXT NOT NULL);";
 	char * create_readings_error_msg;
@@ -55,19 +56,20 @@ void populate_readings_table(sqlite3 * output_db, const list<variation_unit> & v
 	char * transaction_error_msg;
 	sqlite3_exec(output_db, "BEGIN TRANSACTION", NULL, NULL, & transaction_error_msg);
 	sqlite3_stmt * insert_into_readings_stmt;
-	rc = sqlite3_prepare(output_db, "INSERT INTO READINGS VALUES (?,?)", -1, & insert_into_readings_stmt, 0);
+	rc = sqlite3_prepare(output_db, "INSERT INTO READINGS VALUES (?,?,?)", -1, & insert_into_readings_stmt, 0);
 	if (rc != SQLITE_OK) {
 		cerr << "Error preparing statement." << endl;
 		exit(1);
 	}
-	for (variation_unit vu : variation_units) {
+	int row_id = 0;
+	for (variation_unit vu : app.get_variation_units()) {
 		string vu_id = vu.get_id();
-		local_stemma ls = vu.get_local_stemma();
-		list<local_stemma_vertex> vertices = ls.get_graph().vertices;
-		for (local_stemma_vertex v : vertices) {
+		list<string> readings = vu.get_readings();
+		for (string rdg : readings) {
 			//Then insert a row containing these values:
-			sqlite3_bind_text(insert_into_readings_stmt, 1, vu_id.c_str(), -1, SQLITE_STATIC);
-			sqlite3_bind_text(insert_into_readings_stmt, 2, v.id.c_str(), -1, SQLITE_STATIC);
+			sqlite3_bind_int(insert_into_readings_stmt, 1, row_id);
+			sqlite3_bind_text(insert_into_readings_stmt, 2, vu_id.c_str(), -1, SQLITE_STATIC);
+			sqlite3_bind_text(insert_into_readings_stmt, 3, rdg.c_str(), -1, SQLITE_STATIC);
 			rc = sqlite3_step(insert_into_readings_stmt);
 			if (rc != SQLITE_DONE) {
 				cerr << "Error executing prepared statement." << endl;
@@ -75,6 +77,7 @@ void populate_readings_table(sqlite3 * output_db, const list<variation_unit> & v
 			}
 			//Then reset the prepared statement so we can bind the next values to it:
 			sqlite3_reset(insert_into_readings_stmt);
+			row_id++;
 		}
 	}
 	sqlite3_finalize(insert_into_readings_stmt);
@@ -85,12 +88,12 @@ void populate_readings_table(sqlite3 * output_db, const list<variation_unit> & v
 /**
  * Creates, indexes, and populates the READING_RELATIONS table.
  */
-void populate_reading_relations_table(sqlite3 * output_db, const list<variation_unit> & variation_units) {
+void populate_reading_relations_table(sqlite3 * output_db, const apparatus & app) {
 	int rc; //to store SQLite macros
-	cout << "Populating table READING_RELATIONS..." << endl;
 	//Create the READING_RELATIONS table:
 	string create_reading_relations_sql = "DROP TABLE IF EXISTS READING_RELATIONS;"
 			"CREATE TABLE READING_RELATIONS ("
+			"ROW_ID INT NOT NULL, "
 			"VARIATION_UNIT TEXT NOT NULL, "
 			"PRIOR TEXT NOT NULL, "
 			"POSTERIOR TEXT NOT NULL, "
@@ -116,21 +119,23 @@ void populate_reading_relations_table(sqlite3 * output_db, const list<variation_
 	char * transaction_error_msg;
 	sqlite3_exec(output_db, "BEGIN TRANSACTION", NULL, NULL, & transaction_error_msg);
 	sqlite3_stmt * insert_into_reading_relations_stmt;
-	rc = sqlite3_prepare(output_db, "INSERT INTO READING_RELATIONS VALUES (?,?,?,?)", -1, & insert_into_reading_relations_stmt, 0);
+	rc = sqlite3_prepare(output_db, "INSERT INTO READING_RELATIONS VALUES (?,?,?,?,?)", -1, & insert_into_reading_relations_stmt, 0);
 	if (rc != SQLITE_OK) {
 		cerr << "Error preparing statement." << endl;
 		exit(1);
 	}
-	for (variation_unit vu : variation_units) {
+	int row_id = 0;
+	for (variation_unit vu : app.get_variation_units()) {
 		string vu_id = vu.get_id();
 		local_stemma ls = vu.get_local_stemma();
-		list<local_stemma_edge> edges = ls.get_graph().edges;
+		list<local_stemma_edge> edges = ls.get_edges();
 		for (local_stemma_edge e : edges) {
 			//Then insert a row containing these values:
-			sqlite3_bind_text(insert_into_reading_relations_stmt, 1, vu_id.c_str(), -1, SQLITE_STATIC);
-			sqlite3_bind_text(insert_into_reading_relations_stmt, 2, e.prior.c_str(), -1, SQLITE_STATIC);
-			sqlite3_bind_text(insert_into_reading_relations_stmt, 3, e.posterior.c_str(), -1, SQLITE_STATIC);
-			sqlite3_bind_double(insert_into_reading_relations_stmt, 4, e.weight);
+			sqlite3_bind_int(insert_into_reading_relations_stmt, 1, row_id);
+			sqlite3_bind_text(insert_into_reading_relations_stmt, 2, vu_id.c_str(), -1, SQLITE_STATIC);
+			sqlite3_bind_text(insert_into_reading_relations_stmt, 3, e.prior.c_str(), -1, SQLITE_STATIC);
+			sqlite3_bind_text(insert_into_reading_relations_stmt, 4, e.posterior.c_str(), -1, SQLITE_STATIC);
+			sqlite3_bind_double(insert_into_reading_relations_stmt, 5, e.weight);
 			rc = sqlite3_step(insert_into_reading_relations_stmt);
 			if (rc != SQLITE_DONE) {
 				cerr << "Error executing prepared statement." << endl;
@@ -138,6 +143,7 @@ void populate_reading_relations_table(sqlite3 * output_db, const list<variation_
 			}
 			//Then reset the prepared statement so we can bind the next values to it:
 			sqlite3_reset(insert_into_reading_relations_stmt);
+			row_id++;
 		}
 	}
 	sqlite3_finalize(insert_into_reading_relations_stmt);
@@ -147,13 +153,15 @@ void populate_reading_relations_table(sqlite3 * output_db, const list<variation_
 
 /**
  * Creates, indexes, and populates the READING_SUPPORT table.
+ * Rows will be populated in order of variation unit, then witness ID, 
+ * following the order of witness IDs in the apparatus's list_wit member.
  */
-void populate_reading_support_table(sqlite3 * output_db, const list<variation_unit> & variation_units) {
+void populate_reading_support_table(sqlite3 * output_db, const apparatus & app) {
 	int rc; //to store SQLite macros
-	cout << "Populating table READING_SUPPORT..." << endl;
 	//Create the READING_SUPPORT table:
 	string create_reading_support_sql = "DROP TABLE IF EXISTS READING_SUPPORT;"
 			"CREATE TABLE READING_SUPPORT ("
+			"ROW_ID INT NOT NULL, "
 			"VARIATION_UNIT TEXT NOT NULL, "
 			"WITNESS TEXT NOT NULL, "
 			"READING TEXT NOT NULL);";
@@ -178,21 +186,26 @@ void populate_reading_support_table(sqlite3 * output_db, const list<variation_un
 	char * transaction_error_msg;
 	sqlite3_exec(output_db, "BEGIN TRANSACTION", NULL, NULL, & transaction_error_msg);
 	sqlite3_stmt * insert_into_reading_support_stmt;
-	rc = sqlite3_prepare(output_db, "INSERT INTO READING_SUPPORT VALUES (?,?,?)", -1, & insert_into_reading_support_stmt, 0);
+	rc = sqlite3_prepare(output_db, "INSERT INTO READING_SUPPORT VALUES (?,?,?,?)", -1, & insert_into_reading_support_stmt, 0);
 	if (rc != SQLITE_OK) {
 		cerr << "Error preparing statement." << endl;
 		exit(1);
 	}
-	for (variation_unit vu : variation_units) {
+	int row_id = 0;
+	for (variation_unit vu : app.get_variation_units()) {
 		string vu_id = vu.get_id();
 		unordered_map<string, string> reading_support = vu.get_reading_support();
-		for (pair<string, string> kv : reading_support) {
-			string wit_id = kv.first;
-			string wit_rdg = kv.second;
+		for (string wit_id : app.get_list_wit()) {
+			//Skip any witnesses that are lacunose here:
+			if (reading_support.find(wit_id) == reading_support.end()) {
+				continue;
+			}
+			string wit_rdg = reading_support.at(wit_id);
 			//Then insert a row containing these values:
-			sqlite3_bind_text(insert_into_reading_support_stmt, 1, vu_id.c_str(), -1, SQLITE_STATIC);
-			sqlite3_bind_text(insert_into_reading_support_stmt, 2, wit_id.c_str(), -1, SQLITE_STATIC);
-			sqlite3_bind_text(insert_into_reading_support_stmt, 3, wit_rdg.c_str(), -1, SQLITE_STATIC);
+			sqlite3_bind_int(insert_into_reading_support_stmt, 1, row_id);
+			sqlite3_bind_text(insert_into_reading_support_stmt, 2, vu_id.c_str(), -1, SQLITE_STATIC);
+			sqlite3_bind_text(insert_into_reading_support_stmt, 3, wit_id.c_str(), -1, SQLITE_STATIC);
+			sqlite3_bind_text(insert_into_reading_support_stmt, 4, wit_rdg.c_str(), -1, SQLITE_STATIC);
 			rc = sqlite3_step(insert_into_reading_support_stmt);
 			if (rc != SQLITE_DONE) {
 				cerr << "Error executing prepared statement." << endl;
@@ -200,6 +213,7 @@ void populate_reading_support_table(sqlite3 * output_db, const list<variation_un
 			}
 			//Then reset the prepared statement so we can bind the next values to it:
 			sqlite3_reset(insert_into_reading_support_stmt);
+			row_id++;
 		}
 	}
 	sqlite3_finalize(insert_into_reading_support_stmt);
@@ -210,12 +224,12 @@ void populate_reading_support_table(sqlite3 * output_db, const list<variation_un
 /**
  * Creates, indexes, and populates the VARIATION_UNITS table.
  */
-void populate_variation_units_table(sqlite3 * output_db, const list<variation_unit> & variation_units) {
+void populate_variation_units_table(sqlite3 * output_db, const apparatus & app) {
 	int rc; //to store SQLite macros
-	cout << "Populating table VARIATION_UNITS..." << endl;
 	//Create the VARIATION_UNITS table:
 	string create_variation_units_sql = "DROP TABLE IF EXISTS VARIATION_UNITS;"
 			"CREATE TABLE VARIATION_UNITS ("
+			"ROW_ID INT NOT NULL, "
 			"VARIATION_UNIT TEXT NOT NULL, "
 			"LABEL TEXT, "
 			"CONNECTIVITY INT NOT NULL);";
@@ -240,19 +254,21 @@ void populate_variation_units_table(sqlite3 * output_db, const list<variation_un
 	char * transaction_error_msg;
 	sqlite3_exec(output_db, "BEGIN TRANSACTION", NULL, NULL, & transaction_error_msg);
 	sqlite3_stmt * insert_into_variation_units_stmt;
-	rc = sqlite3_prepare(output_db, "INSERT INTO VARIATION_UNITS VALUES (?,?,?)", -1, & insert_into_variation_units_stmt, 0);
+	rc = sqlite3_prepare(output_db, "INSERT INTO VARIATION_UNITS VALUES (?,?,?,?)", -1, & insert_into_variation_units_stmt, 0);
 	if (rc != SQLITE_OK) {
 		cerr << "Error preparing statement." << endl;
 		exit(1);
 	}
-	for (variation_unit vu : variation_units) {
+	int row_id = 0;
+	for (variation_unit vu : app.get_variation_units()) {
 		string id = vu.get_id();
 		string label = vu.get_label();
 		int connectivity = vu.get_connectivity();
 		//Then insert a row containing these values:
-		sqlite3_bind_text(insert_into_variation_units_stmt, 1, id.c_str(), -1, SQLITE_STATIC);
-		sqlite3_bind_text(insert_into_variation_units_stmt, 2, label.c_str(), -1, SQLITE_STATIC);
-		sqlite3_bind_int(insert_into_variation_units_stmt, 3, connectivity);
+		sqlite3_bind_int(insert_into_variation_units_stmt, 1, row_id);
+		sqlite3_bind_text(insert_into_variation_units_stmt, 2, id.c_str(), -1, SQLITE_STATIC);
+		sqlite3_bind_text(insert_into_variation_units_stmt, 3, label.c_str(), -1, SQLITE_STATIC);
+		sqlite3_bind_int(insert_into_variation_units_stmt, 4, connectivity);
 		rc = sqlite3_step(insert_into_variation_units_stmt);
 		if (rc != SQLITE_DONE) {
 			cerr << "Error executing prepared statement." << endl;
@@ -260,6 +276,7 @@ void populate_variation_units_table(sqlite3 * output_db, const list<variation_un
 		}
 		//Then reset the prepared statement so we can bind the next values to it:
 		sqlite3_reset(insert_into_variation_units_stmt);
+		row_id++;
 	}
 	sqlite3_finalize(insert_into_variation_units_stmt);
 	sqlite3_exec(output_db, "END TRANSACTION", NULL, NULL, & transaction_error_msg);
@@ -271,13 +288,18 @@ void populate_variation_units_table(sqlite3 * output_db, const list<variation_un
  */
 void populate_genealogical_comparisons_table(sqlite3 * output_db, const list<witness> & witnesses) {
 	int rc; //to store SQLite macros
-	cout << "Populating table GENEALOGICAL_COMPARISONS..." << endl;
 	//Create the GENEALOGICAL_COMPARISONS table:
 	string create_genealogical_comparisons_sql = "DROP TABLE IF EXISTS GENEALOGICAL_COMPARISONS;"
 			"CREATE TABLE GENEALOGICAL_COMPARISONS ("
+			"ROW_ID INT NOT NULL, "
 			"PRIMARY_WIT TEXT NOT NULL, "
 			"SECONDARY_WIT TEXT NOT NULL, "
+			"EXTANT BLOB NOT NULL, "
 			"AGREEMENTS BLOB NOT NULL, "
+			"PRIOR BLOB NOT NULL, "
+			"POSTERIOR BLOB NOT NULL, "
+			"NOREL BLOB NOT NULL, "
+			"UNCLEAR BLOB NOT NULL, "
 			"EXPLAINED BLOB NOT NULL, "
 			"COST REAL NOT NULL);";
 	char * create_genealogical_comparisons_error_msg;
@@ -301,45 +323,82 @@ void populate_genealogical_comparisons_table(sqlite3 * output_db, const list<wit
 	char * transaction_error_msg;
 	sqlite3_exec(output_db, "BEGIN TRANSACTION", NULL, NULL, & transaction_error_msg);
 	sqlite3_stmt * insert_into_genealogical_comparisons_stmt;
-	rc = sqlite3_prepare(output_db, "INSERT INTO GENEALOGICAL_COMPARISONS VALUES (?,?,?,?,?)", -1, & insert_into_genealogical_comparisons_stmt, 0);
+	rc = sqlite3_prepare(output_db, "INSERT INTO GENEALOGICAL_COMPARISONS VALUES (?,?,?,?,?,?,?,?,?,?,?)", -1, & insert_into_genealogical_comparisons_stmt, 0);
 	if (rc != SQLITE_OK) {
 		cerr << "Error preparing statement." << endl;
 		exit(1);
 	}
+	int row_id = 0;
 	for (witness primary_wit : witnesses) {
 		string primary_wit_id = primary_wit.get_id();
-		unordered_map<string, genealogical_comparison> genealogical_comparisons = primary_wit.get_genealogical_comparisons();
-		for (pair<string, genealogical_comparison> kv : genealogical_comparisons) {
-			string secondary_wit_id = kv.first;
-			genealogical_comparison comp = kv.second;
+		for (witness secondary_wit : witnesses) {
+			string secondary_wit_id = secondary_wit.get_id();
+			genealogical_comparison comp = primary_wit.get_genealogical_comparison_for_witness(secondary_wit_id);
 			//Serialize the bitmaps into byte arrays:
+			Roaring extant = comp.extant;
+			int extant_expected_size = (int) extant.getSizeInBytes();
+			char * extant_buf = new char [extant_expected_size];
+			extant.write(extant_buf);
 			Roaring agreements = comp.agreements;
-			uint32_t agreements_expected_size = agreements.getSizeInBytes();
+			int agreements_expected_size = (int) agreements.getSizeInBytes();
 			char * agreements_buf = new char [agreements_expected_size];
 			agreements.write(agreements_buf);
+			Roaring prior = comp.prior;
+			int prior_expected_size = (int) prior.getSizeInBytes();
+			char * prior_buf = new char [prior_expected_size];
+			prior.write(prior_buf);
+			Roaring posterior = comp.posterior;
+			int posterior_expected_size = (int) posterior.getSizeInBytes();
+			char * posterior_buf = new char [posterior_expected_size];
+			posterior.write(posterior_buf);
+			Roaring norel = comp.norel;
+			int norel_expected_size = (int) norel.getSizeInBytes();
+			char * norel_buf = new char [norel_expected_size];
+			norel.write(norel_buf);
+			Roaring unclear = comp.unclear;
+			int unclear_expected_size = (int) unclear.getSizeInBytes();
+			char * unclear_buf = new char [unclear_expected_size];
+			unclear.write(unclear_buf);
 			Roaring explained = comp.explained;
-			uint32_t explained_expected_size = explained.getSizeInBytes();
+			int explained_expected_size = (int) explained.getSizeInBytes();
 			char * explained_buf = new char [explained_expected_size];
 			explained.write(explained_buf);
 			//Get the genealogical cost:
 			float cost = comp.cost;
 			//Then insert a row containing these values:
-			sqlite3_bind_text(insert_into_genealogical_comparisons_stmt, 1, primary_wit_id.c_str(), -1, SQLITE_STATIC);
-			sqlite3_bind_text(insert_into_genealogical_comparisons_stmt, 2, secondary_wit_id.c_str(), -1, SQLITE_STATIC);
-			sqlite3_bind_blob(insert_into_genealogical_comparisons_stmt, 3, agreements_buf, agreements_expected_size, SQLITE_STATIC);
-			sqlite3_bind_blob(insert_into_genealogical_comparisons_stmt, 4, explained_buf, explained_expected_size, SQLITE_STATIC);
-			sqlite3_bind_double(insert_into_genealogical_comparisons_stmt, 5, cost);
+			sqlite3_bind_int(insert_into_genealogical_comparisons_stmt, 1, row_id);
+			sqlite3_bind_text(insert_into_genealogical_comparisons_stmt, 2, primary_wit_id.c_str(), -1, SQLITE_STATIC);
+			sqlite3_bind_text(insert_into_genealogical_comparisons_stmt, 3, secondary_wit_id.c_str(), -1, SQLITE_STATIC);
+			sqlite3_bind_blob(insert_into_genealogical_comparisons_stmt, 4, extant_buf, extant_expected_size, SQLITE_STATIC);
+			sqlite3_bind_blob(insert_into_genealogical_comparisons_stmt, 5, agreements_buf, agreements_expected_size, SQLITE_STATIC);
+			sqlite3_bind_blob(insert_into_genealogical_comparisons_stmt, 6, prior_buf, prior_expected_size, SQLITE_STATIC);
+			sqlite3_bind_blob(insert_into_genealogical_comparisons_stmt, 7, posterior_buf, posterior_expected_size, SQLITE_STATIC);
+			sqlite3_bind_blob(insert_into_genealogical_comparisons_stmt, 8, norel_buf, norel_expected_size, SQLITE_STATIC);
+			sqlite3_bind_blob(insert_into_genealogical_comparisons_stmt, 9, unclear_buf, unclear_expected_size, SQLITE_STATIC);
+			sqlite3_bind_blob(insert_into_genealogical_comparisons_stmt, 10, explained_buf, explained_expected_size, SQLITE_STATIC);
+			sqlite3_bind_double(insert_into_genealogical_comparisons_stmt, 11, cost);
 			rc = sqlite3_step(insert_into_genealogical_comparisons_stmt);
 			if (rc != SQLITE_DONE) {
 				cerr << "Error executing prepared statement." << endl;
+				delete[] extant_buf;
 				delete[] agreements_buf;
+				delete[] prior_buf;
+				delete[] posterior_buf;
+				delete[] norel_buf;
+				delete[] unclear_buf;
 				delete[] explained_buf;
 				exit(1);
 			}
 			//Then clean up allocated memory and reset the prepared statement so we can bind the next values to it:
+			delete[] extant_buf;
 			delete[] agreements_buf;
+			delete[] prior_buf;
+			delete[] posterior_buf;
+			delete[] norel_buf;
+			delete[] unclear_buf;
 			delete[] explained_buf;
 			sqlite3_reset(insert_into_genealogical_comparisons_stmt);
+			row_id++;
 		}
 	}
 	sqlite3_finalize(insert_into_genealogical_comparisons_stmt);
@@ -350,12 +409,12 @@ void populate_genealogical_comparisons_table(sqlite3 * output_db, const list<wit
 /**
  * Creates, indexes, and populates the WITNESSES table.
  */
-void populate_witnesses_table(sqlite3 * output_db, const list<witness> & witnesses) {
+void populate_witnesses_table(sqlite3 * output_db, const list<string> & list_wit) {
 	int rc; //to store SQLite macros
-	cout << "Populating table WITNESSES..." << endl;
 	//Create the WITNESSES table:
 	string create_witnesses_sql = "DROP TABLE IF EXISTS WITNESSES;"
 			"CREATE TABLE WITNESSES ("
+			"ROW_ID INT NOT NULL, "
 			"WITNESS TEXT NOT NULL);";
 	char * create_witnesses_error_msg;
 	rc = sqlite3_exec(output_db, create_witnesses_sql.c_str(), NULL, 0, & create_witnesses_error_msg);
@@ -378,15 +437,16 @@ void populate_witnesses_table(sqlite3 * output_db, const list<witness> & witness
 	char * transaction_error_msg;
 	sqlite3_exec(output_db, "BEGIN TRANSACTION", NULL, NULL, & transaction_error_msg);
 	sqlite3_stmt * insert_into_witnesses_stmt;
-	rc = sqlite3_prepare(output_db, "INSERT INTO WITNESSES VALUES (?)", -1, & insert_into_witnesses_stmt, 0);
+	rc = sqlite3_prepare(output_db, "INSERT INTO WITNESSES VALUES (?,?)", -1, & insert_into_witnesses_stmt, 0);
 	if (rc != SQLITE_OK) {
 		cerr << "Error preparing statement." << endl;
 		exit(1);
 	}
-	for (witness wit : witnesses) {
-		string wit_id = wit.get_id();
+	int row_id = 0;
+	for (string wit_id : list_wit) {
 		//Then insert a row containing these values:
-		sqlite3_bind_text(insert_into_witnesses_stmt, 1, wit_id.c_str(), -1, SQLITE_STATIC);
+		sqlite3_bind_int(insert_into_witnesses_stmt, 1, row_id);
+		sqlite3_bind_text(insert_into_witnesses_stmt, 2, wit_id.c_str(), -1, SQLITE_STATIC);
 		rc = sqlite3_step(insert_into_witnesses_stmt);
 		if (rc != SQLITE_DONE) {
 			cerr << "Error executing prepared statement." << endl;
@@ -394,6 +454,7 @@ void populate_witnesses_table(sqlite3 * output_db, const list<witness> & witness
 		}
 		//Then reset the prepared statement so we can bind the next values to it:
 		sqlite3_reset(insert_into_witnesses_stmt);
+		row_id++;
 	}
 	sqlite3_finalize(insert_into_witnesses_stmt);
 	sqlite3_exec(output_db, "END TRANSACTION", NULL, NULL, & transaction_error_msg);
@@ -408,19 +469,21 @@ int main(int argc, char* argv[]) {
 	set<string> trivial_reading_types = set<string>();
 	set<string> dropped_reading_types = set<string>();
 	bool merge_splits = false;
+	bool classic = false;
 	int threshold = 0;
 	string input_xml_name = string();
 	string output_db_name = string();
 	try {
 		cxxopts::Options options("populate_db", "Parse the given collation XML file and populate the genealogical cache in the given SQLite database.");
-		options.custom_help("[-h] [-t threshold] [-z trivial_reading_type_1 -z trivial_reading_type_2 ...] [-Z dropped_reading_type_1 -Z dropped_reading_type_2 ...] [--merge-splits] input_xml output_db");
+		options.custom_help("[-h] [-t threshold] [-z trivial_reading_type_1 -z trivial_reading_type_2 ...] [-Z dropped_reading_type_1 -Z dropped_reading_type_2 ...] [--merge-splits] [--classic] input_xml output_db");
 		options.positional_help("").show_positional_help();
 		options.add_options("")
 				("h,help", "print this help")
 				("t,threshold", "minimum extant readings threshold", cxxopts::value<int>())
 				("z", "reading type to treat as trivial (this may be used multiple times)", cxxopts::value<vector<string>>())
 				("Z", "reading type to drop entirely (this may be used multiple times)", cxxopts::value<vector<string>>())
-				("merge-splits", "merge split attestations of the same reading", cxxopts::value<bool>());
+				("merge-splits", "merge split attestations of the same reading", cxxopts::value<bool>())
+				("classic", "calculate explained readings and costs using classic CBGM rules", cxxopts::value<bool>());
 		options.add_options("positional")
 				("input_xml", "collation file in TEI XML format", cxxopts::value<string>())
 				("output_db", "output SQLite database (if an existing database is provided, its contents will be overwritten)", cxxopts::value<vector<string>>());
@@ -428,7 +491,7 @@ int main(int argc, char* argv[]) {
 		auto args = options.parse(argc, argv);
 		//Print help documentation and exit if specified:
 		if (args.count("help")) {
-			cout << options.help({""}) << endl;
+			cout << options.help({"", "positional"}) << endl;
 			exit(0);
 		}
 		//Parse the optional arguments:
@@ -447,6 +510,9 @@ int main(int argc, char* argv[]) {
 		}
 		if (args.count("merge-splits")) {
 			merge_splits = args["merge-splits"].as<bool>();
+		}
+		if (args.count("classic")) {
+			classic = args["classic"].as<bool>();
 		}
 		//Parse the positional arguments:
 		if (!args.count("input_xml") || args.count("output_db") != 1) {
@@ -475,32 +541,24 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 	apparatus app = apparatus(tei_node, merge_splits, trivial_reading_types, dropped_reading_types);
-	//Get the apparatus's list of variation units:
-	list<variation_unit> variation_units = list<variation_unit>();
-	for (variation_unit vu : app.get_variation_units()) {
-		variation_units.push_back(vu);
-	}
 	//If the user has specified a minimum extant readings threshold,
-	//then populate a set of witnesses that meet the threshold:
-	list<string> list_wit = list<string>();
+	//then repopulate the apparatus's witness list with just the IDs of witnesses that meet the threshold:
 	if (threshold > 0) {
 		cout << "Filtering out fragmentary witnesses... " << endl;
-		for (string wit_id : app.get_list_wit()) {
-			if (app.get_extant_passages_for_witness(wit_id) >= threshold) {
-				list_wit.push_back(wit_id);
-			}
-		}
-	}
-	//Otherwise, just use the full list of witnesses found in the apparatus:
-	else {
-		list_wit = app.get_list_wit();
+		list<string> list_wit = app.get_list_wit();
+		list_wit.remove_if([&](const string & wit_id) {
+			return app.get_extant_passages_for_witness(wit_id) < threshold;
+		});
+		app.set_list_wit(list_wit);
 	}
 	//Then initialize all of these witnesses:
+	//TODO: Parallelize this step
 	cout << "Initializing all witnesses (this may take a while)... " << endl;
+	list<string> list_wit = app.get_list_wit();
 	list<witness> witnesses = list<witness>();
 	for (string wit_id : list_wit) {
 		cout << "Calculating coherence for witness " << wit_id << "..." << endl;
-		witness wit = witness(wit_id, list_wit, app);
+		witness wit = witness(wit_id, app, classic);
 		witnesses.push_back(wit);
 	}
 	//Now open the output database:
@@ -512,12 +570,18 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 	//Populate each table:
-	populate_readings_table(output_db, variation_units);
-	populate_reading_relations_table(output_db, variation_units);
-	populate_reading_support_table(output_db, variation_units);
-	populate_variation_units_table(output_db, variation_units);
+	cout << "Populating table READINGS..." << endl;
+	populate_readings_table(output_db, app);
+	cout << "Populating table READING_RELATIONS..." << endl;
+	populate_reading_relations_table(output_db, app);
+	cout << "Populating table READING_SUPPORT..." << endl;
+	populate_reading_support_table(output_db, app);
+	cout << "Populating table VARIATION_UNITS..." << endl;
+	populate_variation_units_table(output_db, app);
+	cout << "Populating table GENEALOGICAL_COMPARISONS..." << endl;
 	populate_genealogical_comparisons_table(output_db, witnesses);
-	populate_witnesses_table(output_db, witnesses);
+	cout << "Populating table WITNESSES..." << endl;
+	populate_witnesses_table(output_db, list_wit);
 	//Finally, close the output database:
 	cout << "Closing database..." << endl;
 	sqlite3_close(output_db);

@@ -43,50 +43,75 @@ int create_dir(const string & dir) {
  * Retrieves all rows from the WITNESSES table of the given SQLite database
  * and returns a list of witness IDs populated with its contents.
  */
-list<string> get_witness_ids(sqlite3 * input_db) {
-	list<string> witness_ids = list<string>();
+list<string> get_list_wit(sqlite3 * input_db) {
+	list<string> list_wit = list<string>();
 	int rc; //to store SQLite macros
 	sqlite3_stmt * select_from_witnesses_stmt;
-	sqlite3_prepare(input_db, "SELECT * FROM WITNESSES ORDER BY ROWID", -1, & select_from_witnesses_stmt, 0);
+	sqlite3_prepare(input_db, "SELECT WITNESS FROM WITNESSES ORDER BY ROW_ID", -1, & select_from_witnesses_stmt, 0);
 	rc = sqlite3_step(select_from_witnesses_stmt);
 	while (rc == SQLITE_ROW) {
 		string wit_id = string(reinterpret_cast<const char *>(sqlite3_column_text(select_from_witnesses_stmt, 0)));
-		witness_ids.push_back(wit_id);
+		list_wit.push_back(wit_id);
 		rc = sqlite3_step(select_from_witnesses_stmt);
 	}
 	sqlite3_finalize(select_from_witnesses_stmt);
-	return witness_ids;
+	return list_wit;
 }
 
 /**
- * Retrieves rows relative to the given witness ID from the GENEALOGICAL_COMPARISONS table of the given SQLite database
- * and returns a map of genealogical comparisons populated with its contents.
+ * Using rows for the given witness ID from the GENEALOGICAL_COMPARISONS table of the given SQLite database,
+ * returns a witness.
  */
-unordered_map<string, genealogical_comparison> get_genealogical_comparisons_for_witness(sqlite3 * input_db, const string & wit_id) {
-	unordered_map<string, genealogical_comparison> genealogical_comparisons = unordered_map<string, genealogical_comparison>();
+witness get_witness(sqlite3 * input_db, const string & wit_id) {
 	int rc; //to store SQLite macros
+	//Populate this witness's list of genealogical comparisons to other witnesses:
+	list<genealogical_comparison> comps = list<genealogical_comparison>();
 	sqlite3_stmt * select_from_genealogical_comparisons_stmt;
-	sqlite3_prepare(input_db, "SELECT * FROM GENEALOGICAL_COMPARISONS WHERE PRIMARY_WIT=?", -1, & select_from_genealogical_comparisons_stmt, 0);
+	sqlite3_prepare(input_db, "SELECT * FROM GENEALOGICAL_COMPARISONS WHERE PRIMARY_WIT=? ORDER BY ROW_ID", -1, & select_from_genealogical_comparisons_stmt, 0);
 	sqlite3_bind_text(select_from_genealogical_comparisons_stmt, 1, wit_id.c_str(), -1, SQLITE_STATIC);
 	rc = sqlite3_step(select_from_genealogical_comparisons_stmt);
 	while (rc == SQLITE_ROW) {
 		genealogical_comparison comp;
-		string secondary_wit_id = string(reinterpret_cast<const char *>(sqlite3_column_text(select_from_genealogical_comparisons_stmt, 1)));
-		int agreements_bytes = sqlite3_column_bytes(select_from_genealogical_comparisons_stmt, 2);
-		const char * agreements_buf = reinterpret_cast<const char *>(sqlite3_column_blob(select_from_genealogical_comparisons_stmt, 2));
+		string primary_wit_id = string(reinterpret_cast<const char *>(sqlite3_column_text(select_from_genealogical_comparisons_stmt, 1)));
+		comp.primary_wit = primary_wit_id;
+		string secondary_wit_id = string(reinterpret_cast<const char *>(sqlite3_column_text(select_from_genealogical_comparisons_stmt, 2)));
+		comp.secondary_wit = secondary_wit_id;
+		int extant_bytes = sqlite3_column_bytes(select_from_genealogical_comparisons_stmt, 3);
+		const char * extant_buf = reinterpret_cast<const char *>(sqlite3_column_blob(select_from_genealogical_comparisons_stmt, 3));
+		Roaring extant = Roaring::readSafe(extant_buf, extant_bytes);
+		comp.extant = extant;
+		int agreements_bytes = sqlite3_column_bytes(select_from_genealogical_comparisons_stmt, 4);
+		const char * agreements_buf = reinterpret_cast<const char *>(sqlite3_column_blob(select_from_genealogical_comparisons_stmt, 4));
 		Roaring agreements = Roaring::readSafe(agreements_buf, agreements_bytes);
 		comp.agreements = agreements;
-		int explained_bytes = sqlite3_column_bytes(select_from_genealogical_comparisons_stmt, 3);
-		const char * explained_buf = reinterpret_cast<const char *>(sqlite3_column_blob(select_from_genealogical_comparisons_stmt, 3));
+		int prior_bytes = sqlite3_column_bytes(select_from_genealogical_comparisons_stmt, 5);
+		const char * prior_buf = reinterpret_cast<const char *>(sqlite3_column_blob(select_from_genealogical_comparisons_stmt, 5));
+		Roaring prior = Roaring::readSafe(prior_buf, prior_bytes);
+		comp.prior = prior;
+		int posterior_bytes = sqlite3_column_bytes(select_from_genealogical_comparisons_stmt, 6);
+		const char * posterior_buf = reinterpret_cast<const char *>(sqlite3_column_blob(select_from_genealogical_comparisons_stmt, 6));
+		Roaring posterior = Roaring::readSafe(posterior_buf, posterior_bytes);
+		comp.posterior = posterior;
+		int norel_bytes = sqlite3_column_bytes(select_from_genealogical_comparisons_stmt, 7);
+		const char * norel_buf = reinterpret_cast<const char *>(sqlite3_column_blob(select_from_genealogical_comparisons_stmt, 7));
+		Roaring norel = Roaring::readSafe(norel_buf, norel_bytes);
+		comp.norel = norel;
+		int unclear_bytes = sqlite3_column_bytes(select_from_genealogical_comparisons_stmt, 8);
+		const char * unclear_buf = reinterpret_cast<const char *>(sqlite3_column_blob(select_from_genealogical_comparisons_stmt, 8));
+		Roaring unclear = Roaring::readSafe(unclear_buf, unclear_bytes);
+		comp.unclear = unclear;
+		int explained_bytes = sqlite3_column_bytes(select_from_genealogical_comparisons_stmt, 9);
+		const char * explained_buf = reinterpret_cast<const char *>(sqlite3_column_blob(select_from_genealogical_comparisons_stmt, 9));
 		Roaring explained = Roaring::readSafe(explained_buf, explained_bytes);
 		comp.explained = explained;
-		float cost = float(sqlite3_column_double(select_from_genealogical_comparisons_stmt, 4));
+		float cost = float(sqlite3_column_double(select_from_genealogical_comparisons_stmt, 10));
 		comp.cost = cost;
-		genealogical_comparisons[secondary_wit_id] = comp;
+		comps.push_back(comp);
 		rc = sqlite3_step(select_from_genealogical_comparisons_stmt);
 	}
 	sqlite3_finalize(select_from_genealogical_comparisons_stmt);
-	return genealogical_comparisons;
+	witness wit = witness(wit_id, comps);
+	return wit;
 }
 
 /**
@@ -141,14 +166,14 @@ int main(int argc, char* argv[]) {
 		cerr << "Error opening database " << input_db_name << ": " << sqlite3_errmsg(input_db) << endl;
 		exit(1);
 	}
-	cout << "Retrieving genealogical relationships for all witnesses..." << endl;
-	//Populate a list of witness IDs:
-	list<string> list_wit = get_witness_ids(input_db);
+	cout << "Retrieving witness list..." << endl;
+	//Retrieve all witness IDs in the order in which they occur in the table:
+	list<string> list_wit = get_list_wit(input_db);
+	cout << "Initializing all witnesses..." << endl;
 	//Populate a list of witnesses:
 	list<witness> witnesses = list<witness>();
 	for (string wit_id : list_wit) {
-		unordered_map<string, genealogical_comparison> genealogical_comparisons = get_genealogical_comparisons_for_witness(input_db, wit_id);
-		witness wit = witness(wit_id, genealogical_comparisons);
+		witness wit = get_witness(input_db, wit_id);
 		witnesses.push_back(wit);
 	}
 	//Close the database:
@@ -158,8 +183,16 @@ int main(int argc, char* argv[]) {
 	cout << "Optimizing substemmata (this may take a moment)..." << endl;
 	//Then populate each witness's list of potential ancestors and optimize its substemma:
 	for (witness & wit : witnesses) {
-		wit.set_potential_ancestor_ids(witnesses);
-		wit.set_global_stemma_ancestor_ids();
+		list<set_cover_solution> substemmata = wit.get_substemmata();
+		if (substemmata.empty()) {
+			continue;
+		}
+		set_cover_solution substemma = substemmata.front();
+		list<string> stemmatic_ancestor_ids = list<string>();
+		for (set_cover_row row : substemma.rows) {
+			stemmatic_ancestor_ids.push_back(row.id);
+		}
+		wit.set_stemmatic_ancestor_ids(stemmatic_ancestor_ids);
 	}
 	cout << "Generating global stemma..." << endl;
 	//Construct the global stemma using the witnesses:
