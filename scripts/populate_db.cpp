@@ -12,8 +12,8 @@
 #include <set>
 #include <unordered_map>
 
-#include "cxxopts.h"
-#include "pugixml.h"
+#include "cxxopts.hpp"
+#include "pugixml.hpp"
 #include "roaring.hh"
 #include "sqlite3.h"
 #include "witness.h"

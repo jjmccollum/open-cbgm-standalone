@@ -18,7 +18,7 @@
 #include <set>
 #include <unordered_map>
 
-#include "cxxopts.h"
+#include "cxxopts.hpp"
 #include "sqlite3.h"
 #include "witness.h"
 #include "global_stemma.h"

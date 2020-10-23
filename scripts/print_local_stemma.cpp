@@ -18,7 +18,7 @@
 #include <set>
 #include <unordered_map>
 
-#include "cxxopts.h"
+#include "cxxopts.hpp"
 #include "sqlite3.h"
 
 #include "variation_unit.h"

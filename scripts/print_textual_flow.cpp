@@ -20,7 +20,7 @@
 #include <unordered_map>
 #include <limits>
 
-#include "cxxopts.h"
+#include "cxxopts.hpp"
 #include "sqlite3.h"
 #include "local_stemma.h"
 #include "variation_unit.h"

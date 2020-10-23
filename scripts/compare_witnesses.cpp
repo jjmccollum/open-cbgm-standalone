@@ -12,7 +12,7 @@
 #include <vector>
 #include <set>
 
-#include "cxxopts.h"
+#include "cxxopts.hpp"
 #include "roaring.hh"
 #include "sqlite3.h"
 
@@ -207,7 +207,6 @@ int main(int argc, char* argv[]) {
 			exit(1);
 		}
 	}
-	
 	//Close the database:
 	cout << "Closing database..." << endl;
 	sqlite3_close(input_db);

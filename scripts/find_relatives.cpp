@@ -15,7 +15,7 @@
 #include <unordered_map>
 #include <limits>
 
-#include "cxxopts.h"
+#include "cxxopts.hpp"
 #include "roaring.hh"
 #include "sqlite3.h"
 
