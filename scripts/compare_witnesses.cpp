@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
 	string primary_wit_id = string();
 	set<string> secondary_wit_ids = set<string>();
 	try {
-		cxxopts::Options options("compare_witnesses", "Get a table of genealogical relationships between the witness with the given ID and other witnesses, as specified by the user.");
+		cxxopts::Options options("compare_witnesses", "Get a table of genealogical relationships relative to the witness with the given ID.\nOptionally, the user can specify one or more secondary witnesses, in which case the output will be restricted to the primary witness's relationships with those witnesses.");
 		options.custom_help("[-h] [-f format] [-o output] input_db witness [secondary_witness_1 secondary witness_2 ...]");
 		options.positional_help("").show_positional_help();
 		options.add_options("")

@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
 	string vu_id = string();
 	set<string> filter_readings = set<string>();
 	try {
-		cxxopts::Options options("find_relatives", "Get a table of genealogical relationships between the witness with the given ID and other witnesses at a given passage, as specified by the user.\nOptionally, the user can optionally specify one or more reading IDs for the given passage, in which case the output will be restricted to the witnesses preserving those readings.");
+		cxxopts::Options options("find_relatives", "Get a table of genealogical relationships between the witness with the given ID and other witnesses at a given passage, as specified by the user.\nOptionally, the user can specify one or more reading IDs for the given passage, in which case the output will be restricted to the witnesses preserving those readings.");
 		options.custom_help("[-h] [-f format] [-o output] input_db witness passage [reading_1 reading_2 ...]");
 		options.positional_help("").show_positional_help();
 		options.add_options("")
@@ -322,7 +322,7 @@ int main(int argc, char* argv[]) {
 	for (string rdg : filter_readings) {
 		if (!reading_exists(input_db, vu_id, rdg)) {
 			cerr << "Error: there are no rows in the READINGS table for variation unit ID " << vu_id << " and reading ID " << rdg << "." << endl;
-		exit(1);
+		    exit(1);
 		}
 	}
 	//Close the database:

@@ -21,7 +21,6 @@
 
 #include "optimize_substemmata_table.h"
 #include "witness.h"
-#include "apparatus.h"
 #include "variation_unit.h"
 
 using namespace std;
@@ -103,7 +102,7 @@ witness get_witness(sqlite3 * input_db, const string & wit_id) {
 
 /**
  * Retrieves all rows from the VARIATION_UNITS table of the given SQLite database
- * and returns a vector of variation_unit labels populated with its contents.
+ * and returns a vector of variation unit labels populated with its contents.
  */
 vector<string> get_variation_unit_labels(sqlite3 * input_db) {
 	vector<string> variation_unit_labels = vector<string>();
@@ -132,7 +131,7 @@ int main(int argc, char* argv[]) {
 	string input_db_name = string();
 	string wit_id = string();
 	try {
-		cxxopts::Options options("optimize_substemmata", "Get a table of best-found substemmata for the witness with the given ID.");
+		cxxopts::Options options("optimize_substemmata", "Get a table of best-found substemmata for the witness with the given ID.\nOptionally, the user can specify an upper bound on substemma cost, in which case the output will enumerate all substemmata within the cost bound.");
 		options.custom_help("[-h] [-b bound] [-f format] [-o output] input_db witness");
 		options.positional_help("").show_positional_help();
 		options.add_options("")
