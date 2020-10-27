@@ -1,7 +1,7 @@
 # open-cbgm-standalone
 Standalone command-line interface for the open-cbgm library
 
-[![Version 1.3.3](https://img.shields.io/badge/version-1.3.3-blue)](https://github.com/jjmccollum/open-cbgm-standalone)
+[![Version 1.3.4](https://img.shields.io/badge/version-1.3.4-blue)](https://github.com/jjmccollum/open-cbgm-standalone)
 [![Build Status](https://travis-ci.com/jjmccollum/open-cbgm-standalone.svg?token=nZWB24v9ybTTZm4tWaqm&branch=master)](https://travis-ci.com/jjmccollum/open-cbgm-standalone)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://choosealicense.com/licenses/mit/)
 
