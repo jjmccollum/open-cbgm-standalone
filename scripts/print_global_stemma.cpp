@@ -19,12 +19,14 @@
 #include <unordered_map>
 
 #include "cxxopts.hpp"
+#include "roaring.hh"
 #include "sqlite3.h"
 #include "witness.h"
 #include "global_stemma.h"
 
 
 using namespace std;
+using namespace roaring;
 
 /**
  * Creates a directory with the given name.

@@ -21,6 +21,7 @@
 #include <limits>
 
 #include "cxxopts.hpp"
+#include "roaring.hh"
 #include "sqlite3.h"
 #include "local_stemma.h"
 #include "variation_unit.h"
@@ -29,6 +30,7 @@
 
 
 using namespace std;
+using namespace roaring;
 
 /**
  * Creates a directory with the given name.

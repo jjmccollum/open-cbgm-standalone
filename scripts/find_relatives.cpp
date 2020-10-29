@@ -25,6 +25,7 @@
 #include "local_stemma.h"
 
 using namespace std;
+using namespace roaring;
 
 /**
  * Retrieves all rows from the WITNESSES table of the given SQLite database

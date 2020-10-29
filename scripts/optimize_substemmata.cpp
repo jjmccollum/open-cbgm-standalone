@@ -24,6 +24,7 @@
 #include "variation_unit.h"
 
 using namespace std;
+using namespace roaring;
 
 /**
  * Retrieves all rows with the given witness ID from the GENEALOGICAL_COMPARISONS table of the given SQLite database

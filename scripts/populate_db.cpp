@@ -23,6 +23,8 @@
 
 
 using namespace std;
+using namespace pugi;
+using namespace roaring;
 
 /**
  * Creates, indexes, and populates the READINGS table.
@@ -529,13 +531,13 @@ int main(int argc, char* argv[]) {
 		exit(-1);
 	}
 	//Attempt to parse the input XML file as an apparatus:
-	pugi::xml_document doc;
-	pugi::xml_parse_result pr = doc.load_file(input_xml_name.c_str());
+	xml_document doc;
+	xml_parse_result pr = doc.load_file(input_xml_name.c_str());
 	if (!pr) {
 		cerr << "Error: An error occurred while loading XML file " << input_xml_name << ": " << pr.description() << endl;
 		exit(1);
 	}
-	pugi::xml_node tei_node = doc.child("TEI");
+	xml_node tei_node = doc.child("TEI");
 	if (!tei_node) {
 		cerr << "Error: The XML file " << input_xml_name << " does not have a <TEI> element as its root element." << endl;
 		exit(1);
