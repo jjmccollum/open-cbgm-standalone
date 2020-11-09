@@ -21,7 +21,7 @@ The core open-cbgm library, along with its dependencies, is included as a Git su
 
 Subsequently, if an update is made to the core library at a later time and you want to incorporate it,then 
 
-    git submodule update --recursive --remote
+    git submodule update --remote
 
 Because the core library serializes graph outputs as `.dot` files, you will need to install graphviz (https://www.graphviz.org) to convert .dot files into image files. Platform-specific instructions for installing graphviz are provided below, and directions on how to get image files from the `.dot` outputs can be found in the "Usage" section below.
 
