@@ -1,7 +1,7 @@
 # open-cbgm-standalone
 Standalone command-line interface for the open-cbgm library
 
-[![Version 1.3.5](https://img.shields.io/badge/version-1.3.5-blue)](https://github.com/jjmccollum/open-cbgm-standalone)
+[![Version 1.4.0](https://img.shields.io/badge/version-1.4.0-blue)](https://github.com/jjmccollum/open-cbgm-standalone)
 [![Build Status](https://travis-ci.com/jjmccollum/open-cbgm-standalone.svg?token=nZWB24v9ybTTZm4tWaqm&branch=master)](https://travis-ci.com/jjmccollum/open-cbgm-standalone)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://choosealicense.com/licenses/mit/)
 
@@ -208,7 +208,7 @@ In order to construct a global stemma, we need to isolate, for each witness, the
 
 The open-cbgm library uses a specially defined genealogical cost function for the purposes of substemma optimization. In the context of a local stemma, we define the _genealogical cost_ of one reading arising from another as the length of the shortest path from the prior reading to the posterior reading in the local stemma. If no path between the readings exists, then the cost is undefined. In the context of a witness and one of its potential ancestors, then the genealogical cost is defined as the sum of genealogical costs at every variation unit where they are defined. This can be further extended to substemmata, where the cost becomes the sum of the costs between the descendant and its stemmatic ancestors. In practice, substemmata with lower genealogical costs tend to exhibit more parsimony (i.e., they consist of few ancestors) and explain more of the witness's variants by agreement than other substemmata.
 
-For genealogical relationships calculated using the `--classic` flag, different criteria govern which readings can be said to explain others and how the costs of substemma are calculated. In the classic formulation, a given reading can only be explained by a reading equivalent to it or directly prior to it, and the cost of a substemma between two witnesses is simply the number of passages where they are known to disagree. Note that in some rare circumstances, this rule set may result in a disconnected global stemma, with the traditional solution being the manual addition of intermediary nodes (Gerd Mink, "Problems of a Highly Contaminated Tradition: The New Testament: Stemmata of Variants as a Source of Genealogy for Witnesses," in Pieter van Reenen, August den Hollander, and Margot van Mulken, eds., _Studies in Stemmatology II_ \[Philadelphia, PA: Benjamins, 2004\], 59–63). The more relaxed criterion for explained readings adopted by the open-cbgm library avoids this scenario.
+For genealogical relationships calculated using the `--classic` flag, different criteria govern which readings can be said to explain others and how the costs of substemma are calculated. In the classic formulation, a given reading can only be explained by a reading equivalent to it or directly prior to it, and the cost of a substemma between two witnesses is simply the number of passages where they are known to disagree. Note that in some rare circumstances, this rule set may result in a disconnected global stemma, with the traditional solution being the manual addition of intermediary nodes (Gerd Mink, "Problems of a Highly Contaminated Tradition: The New Testament: Stemmata of Variants as a Source of Genealogy for Witnesses," in Pieter van Reenen, August den Hollander, and Margot van Mulken, eds., _Studies in Stemmatology II_ \[Philadelphia, PA: Benjamins, 2004\], 13–85, esp. 59–63). The more relaxed criterion for explained readings adopted by the open-cbgm library avoids this scenario.
 
 To get the optimal substemma for witness 5 in 3 John, we would enter the following command:
 
@@ -253,7 +253,7 @@ The `print_global_stemma` script requires at least one input (the database). It 
 
 The generated outputs are not image files, but `.dot` files, which contain textual descriptions of the graphs. To render the images from these files, we must use the `dot` program from the graphviz library. As an example, if the graph description file for the local stemma of 3 John 1:4/22–26 is `B25K1V4U22-26-local-stemma.dot`, then the command
 
-    dot -Tpng B25K1V4U22-26-local-stemma.dot -O
+    dot -Tpng -O B25K1V4U22-26-local-stemma.dot
     
 will generate a PNG image file called `B25K1V4U22-26-local-stemma.dot.png`. (If you want to specify your own output file name, use the `-o` argument followed by the file name you want.)
 
@@ -273,8 +273,8 @@ Coherence in attestations diagrams for all readings in 3 John 1:4/22–26:
 Coherence in variant passages diagram for 3 John 1:4/22–26:
 ![3 John 1:4/22–26 coherence in variant passages diagram](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/B25K1V4U22-26-coherence-variants.png)
 
-Complete global stemma for 3 John (multiple roots are due to readings with unclear sources):
+Complete global stemma for 3 John (multiple roots are due to fragmentary witnesses and readings with unclear sources):
 ![3 John global stemma](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/global-stemma.png)
 
-Complete global stemma for 3 John, with fragmentary witnesses and variants with unclear reading sources excluded:
+Complete global stemma for 3 John, with fragmentary witnesses (fewer than 100 extant passages) excluded and all local stemmata completed:
 ![3 John global stemma](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/global-stemma-connected.png)
