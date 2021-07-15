@@ -13,13 +13,17 @@ SQLite boasts a relatively small memory footprint. A genealogical cache database
 
 SQLite databases also support fast reads and writes, and following the lead of Edmondson's Python implementation of the CBGM (https://github.com/edmondac/CBGM, [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1296288.svg)](https://doi.org/10.5281/zenodo.1296288)), we have optimized our database's query performance with denormalization.
 
-## Installation and Dependencies
+## Fast Installation (Pre-built Executables)
+
+The binary executables for the open-cbgm standalone library are available for direct download in the latest release. Just click the latest link in the repository's "Releases" panel, and you will find compressed archives of the executables listed under "Assets" along with archives of the source code. Linux and Mac users should download the `open-cbgm-standalone.tar.gz` archive, and Windows users should download the `open-cbgm-standalone.zip` archive. 
+
+## Full Installation (Source Code) and Dependencies
 
 The core open-cbgm library, along with its dependencies, is included as a Git submodule of this repository; if you do not have the submodule initialized, then you must initialize it with the command
 
     git submodule update --init --recursive
 
-Subsequently, if an update is made to the core library at a later time and you want to incorporate it,then 
+Subsequently, if an update is made to the core library at a later time and you want to incorporate it, then enter the command
 
     git submodule update --remote
 
