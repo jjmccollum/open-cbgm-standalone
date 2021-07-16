@@ -15,7 +15,7 @@ SQLite databases also support fast reads and writes, and following the lead of E
 
 ## Fast Installation (Pre-built Executables)
 
-The binary executables for the open-cbgm standalone library are available for direct download in the latest release. Just click the latest link in the repository's "Releases" panel, and you will find compressed archives of the executables listed under "Assets" along with archives of the source code. Linux and Mac users should download the `open-cbgm-standalone.tar.gz` archive, and Windows users should download the `open-cbgm-standalone.zip` archive. 
+The binary executables for the open-cbgm standalone library are available for direct download in the latest release. Just click the latest link in the repository's "Releases" panel, and you will find compressed archives of the executables (each named according to its intended operating system) listed under "Assets" along with archives of the source code.
 
 ## Full Installation (Source Code) and Dependencies
 
