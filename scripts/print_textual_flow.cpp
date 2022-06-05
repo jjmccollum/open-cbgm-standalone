@@ -237,18 +237,20 @@ int main(int argc, char* argv[]) {
 	bool attestations = false;
 	bool variants = false;
 	bool flow_strengths = false;
+	int connectivity = -1;
 	set<string> filter_vu_ids = set<string>();
 	string input_db_name = string();
 	try {
 		cxxopts::Options options("print_textual_flow", "Prints multiple types of textual flow diagrams to .dot output files. The output files will be placed in the \"flow\", \"attestations\", and \"variants\" directories.");
-		options.custom_help("[-h] [--flow] [--attestations] [--variants] [--strengths] input_db [passages]");
+		options.custom_help("[-h] [--flow] [--attestations] [--variants] [--strengths] [-k connectivity] input_db [passages]");
 		options.positional_help("").show_positional_help();
 		options.add_options("")
 				("h,help", "print this help")
 				("flow", "print complete textual flow diagrams", cxxopts::value<bool>())
 				("attestations", "print coherence in attestation textual flow diagrams", cxxopts::value<bool>())
 				("variants", "print coherence at variant passages diagrams (i.e., textual flow diagrams restricted to flow between different readings)", cxxopts::value<bool>())
-				("strengths", "format edges to reflect flow strengths", cxxopts::value<bool>());
+				("strengths", "format edges to reflect flow strengths", cxxopts::value<bool>())
+				("k,connectivity", "desired connectivity limit (if not specified, default value in database is used)", cxxopts::value<int>());
 		options.add_options("positional")
 				("input_db", "genealogical cache database", cxxopts::value<string>())
 				("passages", "if specified, only print graphs for the variation units with the given IDs; otherwise, print graphs for all variation units", cxxopts::value<vector<string>>());
@@ -277,6 +279,13 @@ int main(int argc, char* argv[]) {
 		//Parse the optional arguments:
 		if (args.count("strengths")) {
 			flow_strengths = args["strengths"].as<bool>();
+		}
+		if (args.count("k")) {
+			connectivity = args["k"].as<int>();
+			if (connectivity <= 0) {
+				cerr << "Error: connectivity (argument -k) must be a positive integer." << endl;
+				exit(1);
+			}
 		}
 		//Parse the positional arguments:
 		if (!args.count("input_db")) {
@@ -346,8 +355,8 @@ int main(int argc, char* argv[]) {
 	//Now generate the graphs for each variation unit:
 	for (variation_unit vu : variation_units) {
 		string vu_id = vu.get_id();
-		//Construct the underlying textual flow data structure using this variation unit and the list of witnesses:
-		textual_flow tf = textual_flow(vu, witnesses);
+		//Construct the underlying textual flow data structure using this variation unit, the list of witnesses, and, if specified, the connectivity:
+		textual_flow tf = connectivity == -1 ? textual_flow(vu, witnesses) : textual_flow(vu, witnesses, connectivity);
 		if (flow) {
 			//Create the directory:
 			string flow_dir = "flow";
