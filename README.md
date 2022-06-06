@@ -13,6 +13,9 @@ SQLite boasts a relatively small memory footprint. A genealogical cache database
 
 SQLite databases also support fast reads and writes, and following the lead of Edmondson's Python implementation of the CBGM (https://github.com/edmondac/CBGM, [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1296288.svg)](https://doi.org/10.5281/zenodo.1296288)), we have optimized our database's query performance with denormalization.
 
+IMPORTANT UPDATE (2022/06/06): For those interested in a more user-friendly version of this interface, David Flood (@d-flood) is in the process of incorporating the `open-cbgm` core library and the scripts for this interface into the Criticus software suite (https://github.com/d-flood/criticus).
+Watch his project to stay informed of changes in this direction; I intend to post another update when the `open-cbgm` library is fully incorporated.
+
 ## Fast Installation (Pre-built Executables)
 
 The binary executables for the open-cbgm standalone library are available for direct download in the latest release. Just click the latest link in the repository's "Releases" panel, and you will find compressed archives of the executables (each named according to its intended operating system) listed under "Assets" along with archives of the source code.
@@ -21,21 +24,29 @@ The binary executables for the open-cbgm standalone library are available for di
 
 The core open-cbgm library, along with its dependencies, is included as a Git submodule of this repository; if you do not have the submodule initialized, then you must initialize it with the command
 
-    git submodule update --init --recursive
+```
+git submodule update --init --recursive
+```
 
 Subsequently, if an update is made to the core library at a later time and you want to incorporate it, then enter the command
 
-    git submodule update --remote
+```
+git submodule update --remote
+```
 
 Because the core library serializes graph outputs as `.dot` files, you will need to install graphviz (https://www.graphviz.org) to convert .dot files into image files. Platform-specific instructions for installing graphviz are provided below, and directions on how to get image files from the `.dot` outputs can be found in the "Usage" section below.
 
 To install the standalone interface on your system, clone this Git repository using the command
 
-    git clone git://github.com/jjmccollum/open-cbgm-standalone.git
+```
+git clone git://github.com/jjmccollum/open-cbgm-standalone.git
+```
 
 You should now have the contents of the repository in an `open-cbgm-standalone` subdirectory of your current directory. From the command line, enter the new directory with the command
 
-    cd open-cbgm-standalone
+```
+cd open-cbgm-standalone
+```
 
 From here, you need to build the project. The precise details of how to do this will depend on your operating system, but in all cases, you will need to have the CMake toolkit (https://cmake.org/) installed. We will provide platform-specific installation instructions below.
 
@@ -43,82 +54,108 @@ From here, you need to build the project. The precise details of how to do this 
 
 To install CMake on Debian variants of Linux, the command is
 
-    sudo apt-get install cmake
+```
+sudo apt-get install cmake
+```
 
 Once you have CMake installed, you can complete the build with a few small lines. From the open-cbgm-standalone directory, create a build directory to store the build, enter it, and complete the build using the following commands:
 
-    mkdir build
-    cd build
-    cmake ..
-    make
-    
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+
 Once these commands have executed, you should have all of the executable scripts added to the open-cbgm-standalone/build/scripts directory.
 
 If graphviz is not installed on your system, then you can install it via the command
 
-    sudo apt-get install graphviz
-    
+```
+sudo apt-get install graphviz
+```
+
 ### MacOS
     
 The setup for MacOS is virtually identical to that of Linux. If you want to install CMake from the command line, it is recommended that you install the necessary packages with Homebrew (https://brew.sh/). If you are using Homebrew, simply enter the command
 
-    brew install cmake
-    
+```
+brew install cmake
+```
+
 Then, from the open-cbgm directory, enter the following commands:
 
-    mkdir build
-    cd build
-    cmake ..
-    make
-    
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+
 Once these commands have executed, you should have all of the executable scripts added to the `open-cbgm-standalone/build/scripts` directory.
 
 If graphviz is not installed on your system, then you can install it via the command
 
-    brew install graphviz
+```
+brew install graphviz
+```
 
 ### Windows
 
 If you want to install CMake from the command line, it is recommended that you install it with the Chocolatey package manager (https://chocolatey.org/). If you are using Chocolatey, simply enter the command
 
-    choco install -y cmake
+```
+choco install -y cmake
+```
 
 If you do this, you'll want to make sure that your `PATH` environment variable includes the path to CMake. Alternatively, you can download the CMake user interface from the official website (https://cmake.org/) and use that.
 
 How you proceed from here depends on whether you compile the code using Microsoft Visual Studio or a suite of open-source tools like MinGW. You can install the Community version of Microsft Visual Studio 2019 for free by downloading it from https://visualstudio.microsoft.com/vs/, or you can install it from the command line via
 
-    choco install -y visualstudio2019community
-    
+```
+choco install -y visualstudio2019community
+```
+
 (Note that you will need to restart your computer after installing Visual Studio.) When you install Visual Studio, make sure you include the C++ Desktop Development workload necessary for building with CMake. If you install from the command line using Chocolatey, you can do this with the command
 
-    choco install -y visualstudio2019-workload-nativedesktop
+```
+choco install -y visualstudio2019-workload-nativedesktop
+```
 
 You can install MinGW by downloading it from http://www.mingw.org/, or you can install it from the command line via
 
-    choco install -y mingw
-    
+```
+choco install -y mingw
+```
+
 If you are compiling with Visual Studio, then from the open-cbgm-standalone directory, enter the following commands:
 
-    mkdir build
-    cd build
-    cmake ..
-    cmake --build . --config Release
-    
+```
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+```
+
 Once these commands have executed, you should have all of the executable scripts added to the `open-cbgm-standalone\build\scripts\Release` directory. Note that they will have the Windows `.exe` suffix, unlike the executables on Linux and MacOS.
 
 If you are compiling with MinGW, then from the open-cbgm directory, enter the following commands:
 
-    mkdir build
-    cd build
-    cmake -DCMAKE_SH="CMAKE_SH-NOTFOUND" -G "MinGW Makefiles" ..
-    mingw32-make
-    
+```
+mkdir build
+cd build
+cmake -DCMAKE_SH="CMAKE_SH-NOTFOUND" -G "MinGW Makefiles" ..
+mingw32-make
+```
+
 Once these commands have executed, you should have all of the executable scripts added to the `open-cbgm-standalone\build\scripts` directory. Note that they will have the Windows `.exe` suffix, unlike the executables on Linux and MacOS.
 
 If graphviz is not installed on your system, then you can install it using Chocolately via the command
 
-    choco install -y graphviz
-    
+```
+choco install -y graphviz
+```
+
 Alternatively, you can download the library from https://www.graphviz.org/ and install it manually.
 
 ## Usage
@@ -138,27 +175,39 @@ Finally, please note that at this time, the current database must be overwritten
 
 As an example, if we wanted to create a new database called cache.db using the `3_john_collation.xml` collation file in the core library's examples directory (which, for simplicity, we will assume we have copied to the directory from which we are executing the scripts), excluding ambiguous readings and witnesses with fewer than 100 extant readings, treating orthographic and defective subvariation as trivial, and using the classic CBGM genealogical calculations, then we would use the following command:
 
-	./populate_db -t 100 -z defective -z orthographic -Z ambiguous --classic 3_john_collation.xml cache.db
+```
+./populate_db -t 100 -z defective -z orthographic -Z ambiguous --classic 3_john_collation.xml cache.db
+```
 
 We note that the `3_john_collation.xml` file encodes lacunae implicitly (so that any witness not attesting to a specified reading is assumed to be lacunose), so lacunae do not have to be excluded explicitly. If we were using a minimally modified output from the ITSEE collation editor (https://github.com/itsee-birmingham/standalone_collation_editor), like the `john_6_23_collation.xml` example, then we would want to specify that readings of type `lac` be excluded:
 
-    ./populate_db -t 100 -z defective -z orthographic -Z lac -Z ambiguous --classic john_6_23_collation.xml cache.db
+```
+./populate_db -t 100 -z defective -z orthographic -Z lac -Z ambiguous --classic john_6_23_collation.xml cache.db
+```
 
 To illustrate the effects of the processing arguments, we present several versions of the local stemma for the variation unit at 3 John 1:4/22–26, along with the commands used to populate the database containing their data. In the local stemmata presented below, dashed arrows represent edges of weight 0.
 
-	./populate_db 3_john_collation.xml cache.db
+```
+./populate_db 3_john_collation.xml cache.db
+```
 
 ![3 John 1:4/22–26, no processing](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/B25K1V4U22-26-local-stemma.png)
 
-	./populate_db -z ambiguous -z defective 3_john_collation.xml cache.db
+```
+./populate_db -z ambiguous -z defective 3_john_collation.xml cache.db
+```
 
 ![3 John 1:4/22–26, ambiguous and defective readings trivial](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/B25K1V4U22-26-local-stemma-amb-def.png)
 
-	./populate_db -Z ambiguous --merge-splits 3_john_collation.xml cache.db
+```
+./populate_db -Z ambiguous --merge-splits 3_john_collation.xml cache.db
+```
 
 ![3 John 1:4/22–26, ambiguous readings dropped and split readings merged](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/B25K1V4U22-26-local-stemma-drop-merge.png)
 
-	./populate_db -z defective -Z ambiguous --merge-splits 3_john_collation.xml cache.db
+```
+./populate_db -z defective -Z ambiguous --merge-splits 3_john_collation.xml cache.db
+```
 
 ![3 John 1:4/22–26, ambiguous readings dropped, split readings merged, defective readings trivial](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/B25K1V4U22-26-local-stemma-drop-merge-def.png)
 
@@ -168,38 +217,48 @@ In the sections that follow, we will assume that the genealogical cache has been
 
 The `compare_witnesses` script is based on the "Comparison of Witnesses" module of the Genealogical Queries tool, but our implementation adds some flexibility. While the Genealogical Queries module only allows for the comparison of two witnesses at a time, `compare_witnesses` can compare a given witness with any number of other specified witnesses. If our genealogical cache is stored in the database `cache.db` and we wanted to compare the witness with number 5 with the witnesses with numbers 03, 35, 88, 453, 1611, and 1739, then we would enter the following command:
 
-    ./compare_witnesses cache.db 5 03 35 88 453 1611 1739
-    
+```
+./compare_witnesses cache.db 5 03 35 88 453 1611 1739
+```
+
 The output of the script will resemble that of the Genealogical Queries module, but with additional rows in the comparison table. The rows are sorted in descending order of their number of agreements with the primary witness.
 
 ![Comparison of witness 5 with specified witnesses](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/compare_witnesses_5_03_35_88_453_1611_1739.png)
 
 If we do not specify any other witnesses explicitly, then the script will compare the one witness specified with all other witnesses taken from the collation. So the command
 
-    ./compare_witnesses cache.db 5
-    
+```
+./compare_witnesses cache.db 5
+```
+
 will return a table of genealogical comparisons between the witness with number 5 and all other collated witnesses, as shown below.
 
 ![Comparison of witness 5 with all other witnesses](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/compare_witnesses_5.png)
 
 By default, the output table is written is fixed-width form to the console, but we can output the table in one of several forms (currently, fixed-width, CSV, TSV, and JSON are supported) using the `-f` flag, and we can write the output to a file using the `-o` flag. For instance, to write the table comparing witness 5 with witnesses 03, 35, 88, 453, 1611, and 1739 as a `.json` file, then we would use the following command:
 
-    ./compare_witnesses -f json -o comparison.json cache.db 5 03 35 88 453 1611 1739
+```
+./compare_witnesses -f json -o comparison.json cache.db 5 03 35 88 453 1611 1739
+```
 
 ### Finding Relatives
 
 The `find_relatives` script is based on the "Comparison of Witnesses" module of the Genealogical Queries tool, but our implementation adds some flexibility. For a given witness and variation unit address, the script outputs a table of genealogical comparisons between the given witness and all other collated witnesses, just like the `compare_witnesses` script does by default, but with an additional column indicating the readings of the other witnesses at the given variation unit. Following our earlier examples, if we want to list the relatives of witness 5 at 3 John 1:4/22–26 (whose number in the XML collation file is "B25K1V4U22-26"), then we would enter
 
-    ./find_relatives cache.db 5 B25K1V4U22-26
-    
+```
+./find_relatives cache.db 5 B25K1V4U22-26
+```
+
 This will produce an output like the one shown below.
 
 ![Relatives of witness 5 at 3 John 1:4/22–26](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/find_relatives_5.png)
 
 Here, rather than filtering for witnesses by their numbers, we can filter for witnesses based on their variant reading IDs at the passage in question. We can specify one or more readings in the passage. For example, if we want to filter the results for just those supporting readings _d_ and _d2_ at this variation unit (which is how the Genealogical Queries module works by default), then we would add the reading IDs as additional arguments as follows:
 
-    ./find_relatives cache.db 5 B25K1V4U22-26 d d2
-    
+```
+./find_relatives cache.db 5 B25K1V4U22-26 d d2
+```
+
 This will produce the output shown below.
 
 ![Relatives of witness 5 with readings d and d2 at 3 John 1:4/22–26](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/find_relatives_5_rdg_d_d2.png)
@@ -216,8 +275,10 @@ For genealogical relationships calculated using the `--classic` flag, different 
 
 To get the optimal substemma for witness 5 in 3 John, we would enter the following command:
 
-    ./optimize_substemmata cache.db 5
-    
+```
+./optimize_substemmata cache.db 5
+```
+
 This will produce the output displayed below.
 
 ![Optimal substemma of witness 5 in 3 John](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/optimize_substemmata_5.png)
@@ -226,8 +287,10 @@ The `COST` column contains the total genealogical cost of the substemma. The `AG
 
 If the standard open-cbgm calculations are used, then this method is guaranteed to return at least one substemma that is both feasible and optimal, as long as the witness under consideration does not have equal priority to the _Ausgangstext_ (which typically only happens for fragmentary witnesses) and none of its readings have unclear sources. (Both problems can be solved by filtering out witnesses that are too lacunose and ensuring that all local stemmata have a single root reading.) In some cases, there may be multiple valid substemmata with the same cost, or there may be a valid substemma with a higher cost that we would consider preferable on other grounds (e.g., it has a significantly higher value in the `AGREE` column. If we have an upper bound on the costs of substemmata we want to consider, then we can enumerate all feasible substemmata within that bound instead. For instance, if we want to consider all feasible substemmata for witness 5 with costs at or below 10, then we would use the optional argument `-b 10` before the required argument as follows:
 
-    ./optimize_substemmata -b 10 cache.db 5
-    
+```
+./optimize_substemmata -b 10 cache.db 5
+```
+
 This will produce the following output:
 
 ![Substemmata of witness 5 with costs within 10 in 3 John](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/optimize_substemmata_5_bound_10.png)
@@ -242,7 +305,9 @@ The two main steps in the iterative workflow of the CBGM are the formulation of 
 
 In the standalone interface, all of this is accomplished with the `print_local_stemma`, `print_textual_flow`, and `print_global_stemma` scripts. The first requires at least one input (the genealogical cache database), but it can accept one or more variation unit identifiers as additional arguments, in which case it will only generate graphs for the local stemmata at those variation units. If no variation units are specified, then local stemmata will be generated for all of them. In addition, it accepts an optional `--weights` argument, which will add edge weights to the generated local stemma graphs. To generate the local stemma graph for 3 John 1:4/22–26, like the ones included above, you can use the command
 
-    ./print_local_stemma cache.db B25K1V4U22-26
+```
+./print_local_stemma cache.db B25K1V4U22-26
+```
 
 The `print_textual_flow` script accepts the same positional inputs (the database and, if desired, a list of specific variation units  whose textual flow diagrams are desired), along with the following optional arguments indicating which specific graph types to generate:
 - `--flow`, which will generate complete textual flow diagrams. A complete textual flow diagram contains all witnesses, highlighting edges of textual flow that involve changes in readings.
@@ -251,14 +316,25 @@ The `print_textual_flow` script accepts the same positional inputs (the database
 
 These arguments can be provided in any combination. If none of them is provided, then it is assumed that the user wants all graphs to be generated. In addition, a `--strengths` argument can be provided, which will format textual flow edges to highlight flow stability, per Andrew Edmondson's recommendation (Andrew Charles Edmondson, "An Analysis of the Coherence-Based Genealogical Method Using Phylogenetics" \[PhD diss., University of Birmingham, 2019\]). For example, to print just the complete textual flow diagram for 3 John 1:4/22–26 with flow stability highlighted, we would run the following command:
 
-    ./print_textual_flow --flow --strengths cache.db B25K1V4U22-26
+```
+./print_textual_flow --flow --strengths cache.db B25K1V4U22-26
+```
+
+In addition, to override the default connectivity limit of the variation unit for the textual flow diagram (e.g., if these defaults were derived from the input XML file), a desired connectivity limit can be specified with the `-k` argument.
+So to print the coherence in attestations diagram for 3 John 1:5/4 with a connectivity limit of 2, we would enter the following command:
+
+```
+./print_textual_flow --attestations -k 2 cache.db B25K1V5U4 
+```
 
 The `print_global_stemma` script requires at least one input (the database). It accepts an optional `--lengths` argument, which will label edges representing stemmatic ancestry relationships with their genealogical costs; this is not recommended unless the graph file is large enough to prevent crowding of edges and their labels. It also accepts an optional `--strengths` argument, which will highlight ancestry relationship edges according to their stability. This script optimizes the substemmata of all witnesses (choosing the first option in case of ties), then combines the substemmata into a global stemma. While this will produce a complete global stemma automatically, the resulting graph should be considered a "first-pass" result; users are strongly encouraged to run the `optimize_substemmata` script for individual witnesses and modify the graph according to their judgment.
 
 The generated outputs are not image files, but `.dot` files, which contain textual descriptions of the graphs. To render the images from these files, we must use the `dot` program from the graphviz library. As an example, if the graph description file for the local stemma of 3 John 1:4/22–26 is `B25K1V4U22-26-local-stemma.dot`, then the command
 
-    dot -Tpng -O B25K1V4U22-26-local-stemma.dot
-    
+```
+dot -Tpng -O B25K1V4U22-26-local-stemma.dot
+```
+
 will generate a PNG image file called `B25K1V4U22-26-local-stemma.dot.png`. (If you want to specify your own output file name, use the `-o` argument followed by the file name you want.)
 
 Sample images of local stemmata have already been included at the beginning of the "Usage" section. For the sake of completeness, we have included sample images of the other types of graphs below.
