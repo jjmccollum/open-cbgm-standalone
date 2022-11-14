@@ -470,6 +470,7 @@ int main(int argc, char* argv[]) {
 	//Read in the command-line options:
 	set<string> trivial_reading_types = set<string>();
 	set<string> dropped_reading_types = set<string>();
+	list<string> ignored_suffixes = list<string>();
 	bool merge_splits = false;
 	bool classic = false;
 	int threshold = 0;
@@ -477,13 +478,14 @@ int main(int argc, char* argv[]) {
 	string output_db_name = string();
 	try {
 		cxxopts::Options options("populate_db", "Parse the given collation XML file and populate the genealogical cache in the given SQLite database.");
-		options.custom_help("[-h] [-t threshold] [-z trivial_reading_type_1 -z trivial_reading_type_2 ...] [-Z dropped_reading_type_1 -Z dropped_reading_type_2 ...] [--merge-splits] [--classic] input_xml output_db");
+		options.custom_help("[-h] [-t threshold] [-z trivial_reading_type_1 -z trivial_reading_type_2 ...] [-Z dropped_reading_type_1 -Z dropped_reading_type_2 ...] [-s ignored_suffix_1 -s ignored_suffix_2 ...] [--merge-splits] [--classic] input_xml output_db");
 		options.positional_help("").show_positional_help();
 		options.add_options("")
 				("h,help", "print this help")
 				("t,threshold", "minimum extant readings threshold", cxxopts::value<int>())
 				("z", "reading type to treat as trivial (this may be used multiple times)", cxxopts::value<vector<string>>())
 				("Z", "reading type to drop entirely (this may be used multiple times)", cxxopts::value<vector<string>>())
+				("s", "ignored witness siglum suffixes (e.g., *, T, V, f) to drop entirely (this may be used multiple times)", cxxopts::value<vector<string>>())
 				("merge-splits", "merge split attestations of the same reading", cxxopts::value<bool>())
 				("classic", "calculate explained readings and costs using classic CBGM rules", cxxopts::value<bool>());
 		options.add_options("positional")
@@ -508,6 +510,11 @@ int main(int argc, char* argv[]) {
 		if (args.count("Z")) {
 			for (string dropped_reading_type : args["Z"].as<vector<string>>()) {
 				dropped_reading_types.insert(dropped_reading_type);
+			}
+		}
+		if (args.count("s")) {
+			for (string ignored_suffix : args["s"].as<vector<string>>()) {
+				ignored_suffixes.push_back(ignored_suffix);
 			}
 		}
 		if (args.count("merge-splits")) {
@@ -542,7 +549,7 @@ int main(int argc, char* argv[]) {
 		cerr << "Error: The XML file " << input_xml_name << " does not have a <TEI> element as its root element." << endl;
 		exit(1);
 	}
-	apparatus app = apparatus(tei_node, merge_splits, trivial_reading_types, dropped_reading_types);
+	apparatus app = apparatus(tei_node, merge_splits, trivial_reading_types, dropped_reading_types, ignored_suffixes);
 	//If the user has specified a minimum extant readings threshold,
 	//then repopulate the apparatus's witness list with just the IDs of witnesses that meet the threshold:
 	if (threshold > 0) {
