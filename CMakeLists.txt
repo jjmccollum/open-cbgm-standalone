@@ -39,7 +39,7 @@ add_subdirectory(lib/open-cbgm)
 add_subdirectory(scripts)
 # Optionally add the unit tests:
 if (BUILD_TESTS)
-  add_test(NAME populate_db COMMAND populate_db -z defective -z orthographic ../lib/open-cbgm/examples/test.xml test.db)
+  add_test(NAME populate_db COMMAND populate_db -z defective -z orthographic -s"*" -s T ../lib/open-cbgm/examples/test.xml test.db)
   add_test(NAME compare_witnesses COMMAND compare_witnesses test.db A B)
   add_test(NAME compare_witnesses_all COMMAND compare_witnesses test.db A)
   add_test(NAME find_relatives_all_readings COMMAND find_relatives test.db A B00K0V0U4)
