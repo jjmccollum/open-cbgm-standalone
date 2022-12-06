@@ -1,7 +1,7 @@
 # open-cbgm-standalone
 Standalone command-line interface for the open-cbgm library
 
-[![Version 1.5.0](https://img.shields.io/badge/version-1.5.0-blue)](https://github.com/jjmccollum/open-cbgm-standalone)
+[![Version 1.6.0](https://img.shields.io/badge/version-1.6.0-blue)](https://github.com/jjmccollum/open-cbgm-standalone)
 [![Build Status](https://travis-ci.com/jjmccollum/open-cbgm-standalone.svg?token=nZWB24v9ybTTZm4tWaqm&branch=master)](https://travis-ci.com/jjmccollum/open-cbgm-standalone)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://choosealicense.com/licenses/mit/)
 
@@ -22,6 +22,18 @@ The binary executables for the open-cbgm standalone library are available for di
 
 ## Full Installation (Source Code) and Dependencies
 
+To install the standalone interface on your system, clone this Git repository using the command
+
+```
+git clone git://github.com/jjmccollum/open-cbgm-standalone.git
+```
+
+You should now have the contents of the repository in an `open-cbgm-standalone` subdirectory of your current directory. From the command line, enter the new directory with the command
+
+```
+cd open-cbgm-standalone
+```
+
 The core open-cbgm library, along with its dependencies, is included as a Git submodule of this repository; if you do not have the submodule initialized, then you must initialize it with the command
 
 ```
@@ -36,19 +48,7 @@ git submodule update --remote
 
 Because the core library serializes graph outputs as `.dot` files, you will need to install graphviz (https://www.graphviz.org) to convert .dot files into image files. Platform-specific instructions for installing graphviz are provided below, and directions on how to get image files from the `.dot` outputs can be found in the "Usage" section below.
 
-To install the standalone interface on your system, clone this Git repository using the command
-
-```
-git clone git://github.com/jjmccollum/open-cbgm-standalone.git
-```
-
-You should now have the contents of the repository in an `open-cbgm-standalone` subdirectory of your current directory. From the command line, enter the new directory with the command
-
-```
-cd open-cbgm-standalone
-```
-
-From here, you need to build the project. The precise details of how to do this will depend on your operating system, but in all cases, you will need to have the CMake toolkit (https://cmake.org/) installed. We will provide platform-specific installation instructions below.
+Once you have all dependencies in place, you need to build the project. The precise details of how to do this will depend on your operating system, but in all cases, you will need to have the CMake toolkit (https://cmake.org/) installed. We will provide platform-specific installation instructions below.
 
 ### Linux
 
@@ -167,7 +167,8 @@ When built, the standalone interface contains seven executable scripts: `populat
 The `populate_db` script reads the input collation XML file, calculates genealogical relationships between all pairs of witnesses, and writes this and other data needed for common CBGM tasks to a SQLite database. Typically, this process will take at least a few minutes, depending on the number of variation units and witnesses in the collation, but the use of a database is intended to make this process one-time work. The script takes the input XML file as a required command-line argument, and it also accepts the following optional arguments for processing the data:
 - `-t` or `--threshold`, which will set a threshold of minimum extant passages for witnesses to be included from the collation. For example, the argument `-t 100` will filter out any witnesses extant in fewer than 100 passages.
 - `-z` followed by a reading type (e.g., `-z defective`), which will treat readings of that type as trivial for the purposes of witness comparison (so using the example already provided, a defective or orthographic subvariant of a reading would be considered to agree with that reading). This argument can be repeated with different reading types (e.g., `-z defective -z orthographic`).
-- `-Z`, followed by a reading type (e.g., `-Z lac`), which will ignore readings of that type, excluding them from variation units and local stemmata. Any witnesses having such readings will be treated as lacunose in the variation units where they have them. This argument can be repeated with different reading types (e.g., `-Z lac -Z ambiguous`).
+- `-Z` followed by a reading type (e.g., `-Z lac`), which will ignore readings of that type, excluding them from variation units and local stemmata. Any witnesses having such readings will be treated as lacunose in the variation units where they have them. This argument can be repeated with different reading types (e.g., `-Z lac -Z ambiguous`).
+- `-s` followed by a suffix for a witness siglum, which will ignore this suffix when it occurs with witness sigla in the collation. This argument can be repeated with different reading types (e.g., `-s "*" -s T -s V -s f`; note that the character `*`, which has a special function on the command line, must be placed between quotes).
 - `--merge-splits`, which will treat split attestations of the same reading as equivalent for the purposes of witness comparison.
 - `--classic`, which will use the "classic" CBGM rules for determining which readings explain others and how costs of genealogical relationships are calculated rather than using the open-cbgm library's standard rules. (For more details, see the "Substemma Optimization" subsection below.) 
 
