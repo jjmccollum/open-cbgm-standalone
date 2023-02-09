@@ -13,8 +13,7 @@ SQLite boasts a relatively small memory footprint. A genealogical cache database
 
 SQLite databases also support fast reads and writes, and following the lead of Edmondson's Python implementation of the CBGM (https://github.com/edmondac/CBGM, [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1296288.svg)](https://doi.org/10.5281/zenodo.1296288)), we have optimized our database's query performance with denormalization.
 
-IMPORTANT UPDATE (2022/06/06): For those interested in a more user-friendly version of this interface, David Flood (@d-flood) is in the process of incorporating the `open-cbgm` core library and the scripts for this interface into the Criticus software suite (https://github.com/d-flood/criticus).
-Watch his project to stay informed of changes in this direction; I intend to post another update when the `open-cbgm` library is fully incorporated.
+IMPORTANT UPDATE (2023/02/09): For those interested in a more user-friendly version of this interface, David Flood (@d-flood) has incorporated the `open-cbgm` core library and the scripts for this interface (along with many other useful features for processing TEI XML collations) into the Apatosaurus web app (https://apatosaurus.io/).
 
 ## Fast Installation (Pre-built Executables)
 
