@@ -17,6 +17,7 @@
 #include <vector>
 #include <set>
 #include <unordered_map>
+#include <thread>
 
 #include "cxxopts.hpp"
 #include "roaring.hh"
@@ -183,19 +184,32 @@ int main(int argc, char* argv[]) {
 	sqlite3_close(input_db);
 	cout << "Database closed." << endl;
 	cout << "Optimizing substemmata (this may take a moment)..." << endl;
-	//Then populate each witness's list of potential ancestors and optimize its substemma:
-	for (witness & wit : witnesses) {
-		list<set_cover_solution> substemmata = wit.get_substemmata();
-		if (substemmata.empty()) {
-			continue;
-		}
-		set_cover_solution substemma = substemmata.front();
-		list<string> stemmatic_ancestor_ids = list<string>();
-		for (set_cover_row row : substemma.rows) {
-			stemmatic_ancestor_ids.push_back(row.id);
-		}
-		wit.set_stemmatic_ancestor_ids(stemmatic_ancestor_ids);
-	}
+	// Create a vector to hold the threads
+vector<thread> threads;
+
+// Define a lambda function to optimize the substemmata for a witness
+auto optimize_substemmata = [](witness& wit) {
+    list<set_cover_solution> substemmata = wit.get_substemmata();
+    if (substemmata.empty()) {
+        return;
+    }
+    set_cover_solution substemma = substemmata.front();
+    list<string> stemmatic_ancestor_ids = list<string>();
+    for (set_cover_row row : substemma.rows) {
+        stemmatic_ancestor_ids.push_back(row.id);
+    }
+    wit.set_stemmatic_ancestor_ids(stemmatic_ancestor_ids);
+};
+
+// Create threads for each witness
+for (witness& wit : witnesses) {
+    threads.emplace_back(optimize_substemmata, std::ref(wit));
+}
+
+// Wait for all threads to finish
+for (thread& t : threads) {
+    t.join();
+}
 	cout << "Generating global stemma..." << endl;
 	//Construct the global stemma using the witnesses:
 	global_stemma gs = global_stemma(witnesses);
