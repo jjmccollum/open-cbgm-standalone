@@ -1,3 +1,13 @@
+# About This Fork
+
+This is a fork of Joey McCollum's open-cbgm-standalone. His original repository can be found here: https://github.com/jjmccollum/open-cbgm-standalone.
+
+# Update
+
+This fork is an attempt to parallelize/multithread some of the open-cbgm's executable scripts. At present, the print_global_stemma script has been successfully parallelized.
+
+This is a work in progress and I'll publish updates here as work as I am able.
+
 # open-cbgm-standalone
 Standalone command-line interface for the open-cbgm library
 
