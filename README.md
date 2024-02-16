@@ -213,6 +213,22 @@ To illustrate the effects of the processing arguments, we present several versio
 
 In the sections that follow, we will assume that the genealogical cache has been populated using the `-Z ambiguous` argument.
 
+### Enumeration of Genealogical Relationships
+
+The `enumerate_relationships` script produces a list of IDs for variation units where a given witness has a specific type of genealogical relationship with another given witness. This can be helpful if you want a quick way to check where two witnesses have, say, an unclear relationship in local stemmata. If our genealogical cache is stored in the database `cache.db` and we wanted to see all the variation units where the witness with number 5 has an unclear relationship with the witness with number 35, then we would enter the following command:
+
+```
+./enumerate_relationships cache.db 5 35 unclear
+```
+
+For convenience, we can also specify multiple types of desired genealogical relationships, and the script will print out the variation units at which they occur separately. So for separate lists of all the variation units where 5 is prior to 35 and all the variation units where 5 is posterior to 35, we would enter
+
+```
+./enumerate_relationships cache.db 5 35 prior posterior
+```
+
+If no type of genealogical relationship is specified, then separate lists will be specified for all of the allowed types of relationships: `extant` (places where neither witness is lacunose), `agree` (places where both witnesses agree), `prior` (places where the first witness is prior to the second), `posterior` (places where the first witness is posterior to the second), `norel` (places where the witnesses' readings are independent), `unclear` (places where the witnesses' readings have an unclear relationship), and `explained` (places where the first witness is explained by the second witness).
+
 ### Comparison of Witnesses
 
 The `compare_witnesses` script is based on the "Comparison of Witnesses" module of the Genealogical Queries tool, but our implementation adds some flexibility. While the Genealogical Queries module only allows for the comparison of two witnesses at a time, `compare_witnesses` can compare a given witness with any number of other specified witnesses. If our genealogical cache is stored in the database `cache.db` and we wanted to compare the witness with number 5 with the witnesses with numbers 03, 35, 88, 453, 1611, and 1739, then we would enter the following command:
