@@ -203,71 +203,75 @@ int main(int argc, char* argv[]) {
 	cout << "Database closed." << endl;
 	//Then print out the variation units corresponding to the set bits in the desired relationship types in the genealogical comparison:
 	cout << "Genealogical relationships between " << primary_wit_id << " and " << secondary_wit_id << ":\n" << endl;
-	for (string relationship_type : filter_relationship_types) {
-		if (relationship_type == "extant") {
-			uint64_t extant_cardinality = comp.extant.cardinality();
-			uint32_t * extant_vu_indices = new uint32_t[extant_cardinality];
-			comp.extant.toUint32Array(extant_vu_indices);
-			cout << "EXTANT" << endl;
-			for (uint32_t i = 0; i < extant_cardinality; i++) {
-				cout << "\t" << variation_unit_ids[extant_vu_indices[i]] << endl;
-			}
-			delete[] extant_vu_indices;
-		} else if (relationship_type == "agree") {
-			uint64_t agreements_cardinality = comp.agreements.cardinality();
-			uint32_t * agreements_vu_indices = new uint32_t[agreements_cardinality];
-			comp.agreements.toUint32Array(agreements_vu_indices);
-			cout << "AGREE" << endl;
-			for (uint32_t i = 0; i < agreements_cardinality; i++) {
-				cout << "\t" << variation_unit_ids[agreements_vu_indices[i]] << endl;
-			}
-			delete[] agreements_vu_indices;
-		} else if (relationship_type == "prior") {
-			uint64_t prior_cardinality = comp.prior.cardinality();
-			uint32_t * prior_vu_indices = new uint32_t[prior_cardinality];
-			comp.prior.toUint32Array(prior_vu_indices);
-			cout << "PRIOR" << endl;
-			for (uint32_t i = 0; i < prior_cardinality; i++) {
-				cout << "\t" << variation_unit_ids[prior_vu_indices[i]] << endl;
-			}
-			delete[] prior_vu_indices;
-		} else if (relationship_type == "posterior") {
-			uint64_t posterior_cardinality = comp.posterior.cardinality();
-			uint32_t * posterior_vu_indices = new uint32_t[posterior_cardinality];
-			comp.posterior.toUint32Array(posterior_vu_indices);
-			cout << "POSTERIOR" << endl;
-			for (uint32_t i = 0; i < posterior_cardinality; i++) {
-				cout << "\t" << variation_unit_ids[posterior_vu_indices[i]] << endl;
-			}
-			delete[] posterior_vu_indices;
-		} else if (relationship_type == "norel") {
-			uint64_t norel_cardinality = comp.norel.cardinality();
-			uint32_t * norel_vu_indices = new uint32_t[norel_cardinality];
-			comp.norel.toUint32Array(norel_vu_indices);
-			cout << "NOREL" << endl;
-			for (uint32_t i = 0; i < norel_cardinality; i++) {
-				cout << "\t" << variation_unit_ids[norel_vu_indices[i]] << endl;
-			}
-			delete[] norel_vu_indices;
-		} else if (relationship_type == "unclear") {
-			uint64_t unclear_cardinality = comp.unclear.cardinality();
-			uint32_t * unclear_vu_indices = new uint32_t[unclear_cardinality];
-			comp.unclear.toUint32Array(unclear_vu_indices);
-			cout << "UNCLEAR" << endl;
-			for (uint32_t i = 0; i < unclear_cardinality; i++) {
-				cout << "\t" << variation_unit_ids[unclear_vu_indices[i]] << endl;
-			}
-			delete[] unclear_vu_indices;
-		} else if (relationship_type == "explained") {
-			uint64_t explained_cardinality = comp.explained.cardinality();
-			uint32_t * explained_vu_indices = new uint32_t[explained_cardinality];
-			comp.explained.toUint32Array(explained_vu_indices);
-			cout << "EXPLAINED" << endl;
-			for (uint32_t i = 0; i < explained_cardinality; i++) {
-				cout << "\t" << variation_unit_ids[explained_vu_indices[i]] << endl;
-			}
-			delete[] explained_vu_indices;
+	if (filter_relationship_types.find("extant") != filter_relationship_types.end()) {
+		uint64_t extant_cardinality = comp.extant.cardinality();
+		uint32_t * extant_vu_indices = new uint32_t[extant_cardinality];
+		comp.extant.toUint32Array(extant_vu_indices);
+		cout << "EXTANT" << endl;
+		for (uint32_t i = 0; i < extant_cardinality; i++) {
+			cout << "\t" << variation_unit_ids[extant_vu_indices[i]] << endl;
 		}
+		delete[] extant_vu_indices;
+	}
+	if (filter_relationship_types.find("agree") != filter_relationship_types.end()) {
+		uint64_t agreements_cardinality = comp.agreements.cardinality();
+		uint32_t * agreements_vu_indices = new uint32_t[agreements_cardinality];
+		comp.agreements.toUint32Array(agreements_vu_indices);
+		cout << "AGREE" << endl;
+		for (uint32_t i = 0; i < agreements_cardinality; i++) {
+			cout << "\t" << variation_unit_ids[agreements_vu_indices[i]] << endl;
+		}
+		delete[] agreements_vu_indices;
+	}
+	if (filter_relationship_types.find("prior") != filter_relationship_types.end()) {
+		uint64_t prior_cardinality = comp.prior.cardinality();
+		uint32_t * prior_vu_indices = new uint32_t[prior_cardinality];
+		comp.prior.toUint32Array(prior_vu_indices);
+		cout << "PRIOR" << endl;
+		for (uint32_t i = 0; i < prior_cardinality; i++) {
+			cout << "\t" << variation_unit_ids[prior_vu_indices[i]] << endl;
+		}
+		delete[] prior_vu_indices;
+	}
+	if (filter_relationship_types.find("posterior") != filter_relationship_types.end()) {
+		uint64_t posterior_cardinality = comp.posterior.cardinality();
+		uint32_t * posterior_vu_indices = new uint32_t[posterior_cardinality];
+		comp.posterior.toUint32Array(posterior_vu_indices);
+		cout << "POSTERIOR" << endl;
+		for (uint32_t i = 0; i < posterior_cardinality; i++) {
+			cout << "\t" << variation_unit_ids[posterior_vu_indices[i]] << endl;
+		}
+		delete[] posterior_vu_indices;
+	}
+	if (filter_relationship_types.find("norel") != filter_relationship_types.end()) {
+		uint64_t norel_cardinality = comp.norel.cardinality();
+		uint32_t * norel_vu_indices = new uint32_t[norel_cardinality];
+		comp.norel.toUint32Array(norel_vu_indices);
+		cout << "NOREL" << endl;
+		for (uint32_t i = 0; i < norel_cardinality; i++) {
+			cout << "\t" << variation_unit_ids[norel_vu_indices[i]] << endl;
+		}
+		delete[] norel_vu_indices;
+	}
+	if (filter_relationship_types.find("unclear") != filter_relationship_types.end()) {
+		uint64_t unclear_cardinality = comp.unclear.cardinality();
+		uint32_t * unclear_vu_indices = new uint32_t[unclear_cardinality];
+		comp.unclear.toUint32Array(unclear_vu_indices);
+		cout << "UNCLEAR" << endl;
+		for (uint32_t i = 0; i < unclear_cardinality; i++) {
+			cout << "\t" << variation_unit_ids[unclear_vu_indices[i]] << endl;
+		}
+		delete[] unclear_vu_indices;
+	}
+	if (filter_relationship_types.find("explained") != filter_relationship_types.end()) {
+		uint64_t explained_cardinality = comp.explained.cardinality();
+		uint32_t * explained_vu_indices = new uint32_t[explained_cardinality];
+		comp.explained.toUint32Array(explained_vu_indices);
+		cout << "EXPLAINED" << endl;
+		for (uint32_t i = 0; i < explained_cardinality; i++) {
+			cout << "\t" << variation_unit_ids[explained_vu_indices[i]] << endl;
+		}
+		delete[] explained_vu_indices;
 	}
 	exit(0);
 }
