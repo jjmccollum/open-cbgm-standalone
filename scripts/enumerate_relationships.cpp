@@ -13,14 +13,13 @@
 #include <vector>
 #include <set>
 #include <unordered_map>
-#include <limits>
 
 #include "cxxopts.hpp"
 #include "roaring.hh"
 #include "sqlite3.h"
 
+#include "enumerate_relationships_table.h"
 #include "witness.h"
-#include "variation_unit.h"
 #include "local_stemma.h"
 
 using namespace std;
@@ -124,6 +123,8 @@ genealogical_comparison get_genealogical_comparison(sqlite3 * input_db, const st
 int main(int argc, char* argv[]) {
 	//Read in the command-line options:
 	set<string> acceptable_relationship_types = set<string>({"extant", "agree", "prior", "posterior", "norel", "unclear", "explained"});
+	set<string> acceptable_formats = set<string>({"fixed", "csv", "tsv", "json"});
+	string format = "fixed";
 	string output = "";
 	string input_db_name = string();
 	string primary_wit_id = string();
@@ -131,10 +132,12 @@ int main(int argc, char* argv[]) {
 	set<string> filter_relationship_types = set<string>();
 	try {
 		cxxopts::Options options("enumerate_relationships", "Get a printout of all variation units where the two witnesses with specified IDs have one or more given types of genealogical relationships.\nIf no types of genealogical relationships are specified, then the variation units for each type of relationship are enumerated separately.");
-		options.custom_help("[-h] input_db primary_witness secondary_witness [relationship_type_1 relationship_type_2 ...]");
+		options.custom_help("[-h] [-f format] [-o output] input_db primary_witness secondary_witness [relationship_type_1 relationship_type_2 ...]");
 		options.positional_help("").show_positional_help();
 		options.add_options("")
-				("h,help", "print this help");
+				("h,help", "print this help")
+				("f,format", "output format (must be one of {fixed, csv, tsv, json}; default is fixed)", cxxopts::value<string>())
+				("o,output", "output file name (if not specified, output will be written to command line)", cxxopts::value<string>());
 		options.add_options("positional")
 				("input_db", "genealogical cache database", cxxopts::value<string>())
 				("primary_witness", "ID of the primary witness to be checked, as found in its <witness> element in the XML file", cxxopts::value<string>())
@@ -146,6 +149,17 @@ int main(int argc, char* argv[]) {
 		if (args.count("help")) {
 			cout << options.help({"", "positional"}) << endl;
 			exit(0);
+		}
+		//Parse the optional arguments:
+		if (args.count("f")) {
+			format = args["f"].as<string>();
+			if (acceptable_formats.find(format) == acceptable_formats.end()) {
+				cerr << "Error: " << format << " is not a valid format." << endl;
+				exit(1);
+			}
+		}
+		if (args.count("o")) {
+			output = args["o"].as<string>();
 		}
 		//Parse the positional arguments:
 		if (!args.count("input_db") || !args.count("primary_witness") || !args.count("secondary_witness")) {
@@ -201,77 +215,34 @@ int main(int argc, char* argv[]) {
 	cout << "Closing database..." << endl;
 	sqlite3_close(input_db);
 	cout << "Database closed." << endl;
-	//Then print out the variation units corresponding to the set bits in the desired relationship types in the genealogical comparison:
-	cout << "Genealogical relationships between " << primary_wit_id << " and " << secondary_wit_id << ":\n" << endl;
-	if (filter_relationship_types.find("extant") != filter_relationship_types.end()) {
-		uint64_t extant_cardinality = comp.extant.cardinality();
-		uint32_t * extant_vu_indices = new uint32_t[extant_cardinality];
-		comp.extant.toUint32Array(extant_vu_indices);
-		cout << "EXTANT" << endl;
-		for (uint32_t i = 0; i < extant_cardinality; i++) {
-			cout << "\t" << variation_unit_ids[extant_vu_indices[i]] << endl;
+	//Then initialize the table:
+	enumerate_relationships_table table = enumerate_relationships_table(comp, variation_unit_ids);
+	//Then write to the appropriate output:
+	if (output.empty()) {
+		//If no output was specified, then write to cout:
+		if (format == "fixed") {
+			table.to_fixed_width(cout, filter_relationship_types);
+		} else if (format == "csv") {
+			table.to_csv(cout, filter_relationship_types);
+		} else if (format == "tsv") {
+			table.to_tsv(cout, filter_relationship_types);
+		} else if (format == "json") {
+			table.to_json(cout, filter_relationship_types);
 		}
-		delete[] extant_vu_indices;
-	}
-	if (filter_relationship_types.find("agree") != filter_relationship_types.end()) {
-		uint64_t agreements_cardinality = comp.agreements.cardinality();
-		uint32_t * agreements_vu_indices = new uint32_t[agreements_cardinality];
-		comp.agreements.toUint32Array(agreements_vu_indices);
-		cout << "AGREE" << endl;
-		for (uint32_t i = 0; i < agreements_cardinality; i++) {
-			cout << "\t" << variation_unit_ids[agreements_vu_indices[i]] << endl;
+	} else {
+		//Otherwise, write to the output file:
+		fstream file;
+		file.open(output, ios::out);
+		if (format == "fixed") {
+			table.to_fixed_width(file, filter_relationship_types);
+		} else if (format == "csv") {
+			table.to_csv(file, filter_relationship_types);
+		} else if (format == "tsv") {
+			table.to_tsv(file, filter_relationship_types);
+		} else if (format == "json") {
+			table.to_json(file, filter_relationship_types);
 		}
-		delete[] agreements_vu_indices;
-	}
-	if (filter_relationship_types.find("prior") != filter_relationship_types.end()) {
-		uint64_t prior_cardinality = comp.prior.cardinality();
-		uint32_t * prior_vu_indices = new uint32_t[prior_cardinality];
-		comp.prior.toUint32Array(prior_vu_indices);
-		cout << "PRIOR" << endl;
-		for (uint32_t i = 0; i < prior_cardinality; i++) {
-			cout << "\t" << variation_unit_ids[prior_vu_indices[i]] << endl;
-		}
-		delete[] prior_vu_indices;
-	}
-	if (filter_relationship_types.find("posterior") != filter_relationship_types.end()) {
-		uint64_t posterior_cardinality = comp.posterior.cardinality();
-		uint32_t * posterior_vu_indices = new uint32_t[posterior_cardinality];
-		comp.posterior.toUint32Array(posterior_vu_indices);
-		cout << "POSTERIOR" << endl;
-		for (uint32_t i = 0; i < posterior_cardinality; i++) {
-			cout << "\t" << variation_unit_ids[posterior_vu_indices[i]] << endl;
-		}
-		delete[] posterior_vu_indices;
-	}
-	if (filter_relationship_types.find("norel") != filter_relationship_types.end()) {
-		uint64_t norel_cardinality = comp.norel.cardinality();
-		uint32_t * norel_vu_indices = new uint32_t[norel_cardinality];
-		comp.norel.toUint32Array(norel_vu_indices);
-		cout << "NOREL" << endl;
-		for (uint32_t i = 0; i < norel_cardinality; i++) {
-			cout << "\t" << variation_unit_ids[norel_vu_indices[i]] << endl;
-		}
-		delete[] norel_vu_indices;
-	}
-	if (filter_relationship_types.find("unclear") != filter_relationship_types.end()) {
-		uint64_t unclear_cardinality = comp.unclear.cardinality();
-		uint32_t * unclear_vu_indices = new uint32_t[unclear_cardinality];
-		comp.unclear.toUint32Array(unclear_vu_indices);
-		cout << "UNCLEAR" << endl;
-		for (uint32_t i = 0; i < unclear_cardinality; i++) {
-			cout << "\t" << variation_unit_ids[unclear_vu_indices[i]] << endl;
-		}
-		delete[] unclear_vu_indices;
-	}
-	if (filter_relationship_types.find("explained") != filter_relationship_types.end()) {
-		uint64_t explained_cardinality = comp.explained.cardinality();
-		uint32_t * explained_vu_indices = new uint32_t[explained_cardinality];
-		comp.explained.toUint32Array(explained_vu_indices);
-		cout << "EXPLAINED" << endl;
-		for (uint32_t i = 0; i < explained_cardinality; i++) {
-			cout << "\t" << variation_unit_ids[explained_vu_indices[i]] << endl;
-		}
-		delete[] explained_vu_indices;
+		file.close();
 	}
 	exit(0);
 }
