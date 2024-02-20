@@ -50,7 +50,9 @@ jobs:
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
       with:
+        name: open-cbgm-standalone-windows
         path: build/bin/Release/open-cbgm-standalone-windows.zip
+        compression-level: 0
 
   mac-build:
     runs-on: macos-latest
@@ -95,7 +97,9 @@ jobs:
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
       with:
+        name: open-cbgm-standalone-mac
         path: build/bin/open-cbgm-standalone-mac.tar.gz
+        compression-level: 0
 
   linux-build:
     runs-on: ubuntu-latest
@@ -140,4 +144,6 @@ jobs:
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
       with:
+        name: open-cbgm-standalone-linux
         path: build/bin/open-cbgm-standalone-linux.tar.gz
+        compression-level: 0
