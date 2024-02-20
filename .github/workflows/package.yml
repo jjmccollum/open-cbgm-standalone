@@ -49,7 +49,6 @@ jobs:
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
       with:
-        name: open-cbgm-standalone-windows
         path: open-cbgm-standalone-windows.zip
 
   mac-build:
@@ -94,7 +93,6 @@ jobs:
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
       with:
-        name: open-cbgm-standalone-mac
         path: open-cbgm-standalone-mac.tar.gz
 
   linux-build:
@@ -139,5 +137,4 @@ jobs:
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
       with:
-        name: open-cbgm-standalone-linux
         path: open-cbgm-standalone-linux.tar.gz
