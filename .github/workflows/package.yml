@@ -9,8 +9,11 @@ on:
 jobs:
   windows-build:
     runs-on: windows-latest
-    c_compiler: cl
-    cpp_compiler: cl
+    strategy:
+      matrix:
+        os: windows-latest
+        c_compiler: cl
+        cpp_compiler: cl
 
     steps:
     - uses: actions/checkout@v3
@@ -51,8 +54,11 @@ jobs:
 
   mac-build:
     runs-on: macos-latest
-    c_compiler: clang
-    cpp_compiler: clang++
+    strategy:
+      matrix:
+        os: macos-latest
+        c_compiler: clang
+        cpp_compiler: clang++
 
     steps:
     - uses: actions/checkout@v3
@@ -93,8 +99,11 @@ jobs:
 
   linux-build:
     runs-on: ubuntu-latest
-    c_compiler: gcc
-    cpp_compiler: g++
+    strategy:
+      matrix:
+        os: ubuntu-latest
+        c_compiler: gcc
+        cpp_compiler: g++
 
     steps:
     - uses: actions/checkout@v3
