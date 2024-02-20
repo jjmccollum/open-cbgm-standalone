@@ -44,12 +44,13 @@ jobs:
     - name: Package executables
       # Place all the executables into a .zip archive
       run: |
-        Compress-Archive -Path build/bin/Release/*.exe -Destination open-cbgm-standalone-windows.zip
+        cd build/bin/Release
+        Compress-Archive -Path *.exe -Destination open-cbgm-standalone-windows.zip
     - name: Upload executables
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
       with:
-        path: open-cbgm-standalone-windows.zip
+        path: build/bin/Release/open-cbgm-standalone-windows.zip
 
   mac-build:
     runs-on: macos-latest
@@ -88,12 +89,13 @@ jobs:
     - name: Package executables
       # Place all the executables into a .zip archive
       run: |
-        tar -cvzf open-cbgm-standalone-mac.tar.gz build/bin/*
+        cd build/bin
+        tar -cvzf open-cbgm-standalone-mac.tar.gz *
     - name: Upload executables
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
       with:
-        path: open-cbgm-standalone-mac.tar.gz
+        path: build/bin/open-cbgm-standalone-mac.tar.gz
 
   linux-build:
     runs-on: ubuntu-latest
@@ -132,9 +134,10 @@ jobs:
     - name: Package executables
       # Place all the executables into a .zip archive
       run: |
-        tar -cvzf open-cbgm-standalone-linux.tar.gz build/bin/*
+        cd build/bin
+        tar -cvzf open-cbgm-standalone-linux.tar.gz *
     - name: Upload executables
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
       with:
-        path: open-cbgm-standalone-linux.tar.gz
+        path: build/bin/open-cbgm-standalone-linux.tar.gz
