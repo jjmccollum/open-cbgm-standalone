@@ -43,9 +43,9 @@ jobs:
     - name: Upload executables
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
-        with:
-          name: windows-build
-          path: open-cbgm-standalone-windows.zip
+      with:
+        name: open-cbgm-standalone-windows
+        path: open-cbgm-standalone-windows.zip
 
   mac-build:
     runs-on: macos-latest
@@ -83,9 +83,9 @@ jobs:
     - name: Upload executables
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
-        with:
-          name: mac-build
-          path: open-cbgm-standalone-mac.tar.gz
+      with:
+        name: open-cbgm-standalone-mac
+        path: open-cbgm-standalone-mac.tar.gz
 
   linux-build:
     runs-on: ubuntu-latest
@@ -123,6 +123,6 @@ jobs:
     - name: Upload executables
       # Upload the archive as an artifact
       uses: actions/upload-artifact@v4
-        with:
-          name: linux-build
-          path: open-cbgm-standalone-linux.tar.gz
+      with:
+        name: open-cbgm-standalone-linux
+        path: open-cbgm-standalone-linux.tar.gz
