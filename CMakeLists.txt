@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4)
 # Set the project name and version:
 project(open-cbgm-standalone 
-	VERSION 1.6.0
+	VERSION 1.7.0
 	DESCRIPTION "Standalone command-line interface for the open-cbgm library"
 	LANGUAGES C CXX)
 
@@ -40,6 +40,9 @@ add_subdirectory(scripts)
 # Optionally add the unit tests:
 if (BUILD_TESTS)
   add_test(NAME populate_db COMMAND populate_db -z defective -z orthographic -s "*" -s T ../lib/open-cbgm/examples/test.xml test.db)
+  add_test(NAME enumerate_relationships_unclear COMMAND enumerate_relationships test.db A B unclear)
+  add_test(NAME enumerate_relationships_prior_posterior COMMAND enumerate_relationships test.db A B prior posterior)
+  add_test(NAME enumerate_relationships_all COMMAND enumerate_relationships test.db A B)
   add_test(NAME compare_witnesses COMMAND compare_witnesses test.db A B)
   add_test(NAME compare_witnesses_all COMMAND compare_witnesses test.db A)
   add_test(NAME find_relatives_all_readings COMMAND find_relatives test.db A B00K0V0U4)
