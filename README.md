@@ -257,6 +257,22 @@ By default, the output table is written is fixed-width form to the console, but 
 ./compare_witnesses -f json -o comparison.json cache.db 5 03 35 88 453 1611 1739
 ```
 
+To exclude specific witnesses (e.g., P74 and 1241) from the comparison table, we can use the following command:
+
+```
+./compare_witnesses -e P74 -e 1241 cache.db 5
+```
+
+Similarly, to exclude all witnesses extant at fewer than 75% of variation units, we can use the following command:
+
+```
+./compare_witnesses -p 0.75 cache.db 5
+```
+
+The `-e` and `-p` options can be combined on the command-line.
+They will be ignored if any secondary witnesses are specified.
+Note that they may affect the ranks of the primary witness's potential ancestors (if former potential ancestors are excluded).
+
 ### Finding Relatives
 
 The `find_relatives` script is based on the "Comparison of Witnesses" module of the Genealogical Queries tool, but our implementation adds some flexibility. For a given witness and variation unit address, the script outputs a table of genealogical comparisons between the given witness and all other collated witnesses, just like the `compare_witnesses` script does by default, but with an additional column indicating the readings of the other witnesses at the given variation unit. Following our earlier examples, if we want to list the relatives of witness 5 at 3 John 1:4/22–26 (whose number in the XML collation file is "B25K1V4U22-26"), then we would enter
@@ -279,7 +295,7 @@ This will produce the output shown below.
 
 ![Relatives of witness 5 with readings d and d2 at 3 John 1:4/22–26](https://github.com/jjmccollum/open-cbgm-standalone/blob/master/images/find_relatives_5_rdg_d_d2.png)
 
-Like the `compare_witnesses` script, this script can output its table in different formats as specified by the `-f` argument and to specific output files as specified by the `-o` argument.
+Like the `compare_witnesses` script, this script can output its table in different formats as specified by the `-f` option and to specific output files as specified by the `-o` option. It can also support the `-e` option for the exclusion of specific witnesses as relatives and the `-p` option to exclude witnesses extant below a certain proportion of variation units as relatives.
 
 ### Substemma Optimization
 
@@ -313,7 +329,7 @@ This will produce the following output:
 
 Be aware that specifying too high an upper bound may cause the procedure to take a long time.
 
-Like the `compare_witnesses` script, this script can output its table in different formats as specified by the `-f` argument and to specific output files as specified by the `-o` argument.
+Like the `compare_witnesses` script, this script can output its table in different formats as specified by the `-f` argument and to specific output files as specified by the `-o` argument. It also supports the `-e` option for the exclusion of specific witnesses as stemmatic ancestors and the `-p` option to exclude witnesses extant below a certain proportion of variation units as stemmatic ancestors.
 
 ### Generating Graphs
 
@@ -325,7 +341,7 @@ In the standalone interface, all of this is accomplished with the `print_local_s
 ./print_local_stemma cache.db B25K1V4U22-26
 ```
 
-The `print_textual_flow` script accepts the same positional inputs (the database and, if desired, a list of specific variation units  whose textual flow diagrams are desired), along with the following optional arguments indicating which specific graph types to generate:
+The `print_textual_flow` script accepts the same positional inputs (the database and, if desired, a list of specific variation units whose textual flow diagrams are desired), along with the following optional arguments indicating which specific graph types to generate:
 - `--flow`, which will generate complete textual flow diagrams. A complete textual flow diagram contains all witnesses, highlighting edges of textual flow that involve changes in readings.
 - `--attestations`, which will generate coherence in attestations textual flow diagrams for all readings in each variation unit. A coherence in attestations diagram highlights the genealogical coherence of a reading by displaying just the witnesses that support a given reading and any witnesses with different readings that are textual flow ancestors of these witnesses.
 - `--variants`, which will generate coherence in variant passages textual flow diagrams. A coherence in variant passages diagram highlights just the textual flow relationships that involve changes in readings.
@@ -343,7 +359,9 @@ So to print the coherence in attestations diagram for 3 John 1:5/4 with a connec
 ./print_textual_flow --attestations -k 2 cache.db B25K1V5U4 
 ```
 
-The `print_global_stemma` script requires at least one input (the database). It accepts an optional `--lengths` argument, which will label edges representing stemmatic ancestry relationships with their genealogical costs; this is not recommended unless the graph file is large enough to prevent crowding of edges and their labels. It also accepts an optional `--strengths` argument, which will highlight ancestry relationship edges according to their stability. This script optimizes the substemmata of all witnesses (choosing the first option in case of ties), then combines the substemmata into a global stemma. While this will produce a complete global stemma automatically, the resulting graph should be considered a "first-pass" result; users are strongly encouraged to run the `optimize_substemmata` script for individual witnesses and modify the graph according to their judgment.
+This script also supports the `-e` option for the exclusion of specific witnesses from the textual flow diagram and the `-p` option to exclude witnesses extant below a certain proportion of variation units from the textual flow diagram.
+
+The `print_global_stemma` script requires at least one input (the database). It accepts an optional `--lengths` argument, which will label edges representing stemmatic ancestry relationships with their genealogical costs; this is not recommended unless the graph file is large enough to prevent crowding of edges and their labels. It also accepts an optional `--strengths` argument, which will highlight ancestry relationship edges according to their stability. It also supports the `-e` option for the exclusion of specific witnesses from the global stemma and the `-p` option to exclude witnesses extant below a certain proportion of variation units from the global stemma. This script optimizes the substemmata of all witnesses (choosing the first option in case of ties), then combines the substemmata into a global stemma. While this will produce a complete global stemma automatically, the resulting graph should be considered a "first-pass" result; users are strongly encouraged to run the `optimize_substemmata` script for individual witnesses and modify the graph according to their judgment.
 
 The generated outputs are not image files, but `.dot` files, which contain textual descriptions of the graphs. To render the images from these files, we must use the `dot` program from the graphviz library. As an example, if the graph description file for the local stemma of 3 John 1:4/22–26 is `B25K1V4U22-26-local-stemma.dot`, then the command
 
