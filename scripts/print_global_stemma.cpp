@@ -18,6 +18,8 @@
 #include <vector>
 #include <set>
 #include <unordered_map>
+#include <thread>
+#include <chrono>
 
 #include "cxxopts.hpp"
 #include "roaring.hh"
@@ -269,12 +271,13 @@ int main(int argc, char* argv[]) {
 	cout << "Closing database..." << endl;
 	sqlite3_close(input_db);
 	cout << "Database closed." << endl;
-	cout << "Optimizing substemmata (this may take a moment)..." << endl;
-	//Then populate each witness's list of potential ancestors and optimize its substemma:
-	for (witness & wit : witnesses) {
-		list<set_cover_solution> substemmata = wit.get_substemmata();
+	// Create a vector to hold the threads
+	vector<thread> threads;
+	// Define a lambda function to optimize the substemmata for a witness
+	auto optimize_substemmata = [](witness& wit) {
+		list<set_cover_solution> substemmata = wit.get_substemmata(0, true);
 		if (substemmata.empty()) {
-			continue;
+			return;
 		}
 		set_cover_solution substemma = substemmata.front();
 		list<string> stemmatic_ancestor_ids = list<string>();
@@ -282,7 +285,25 @@ int main(int argc, char* argv[]) {
 			stemmatic_ancestor_ids.push_back(row.id);
 		}
 		wit.set_stemmatic_ancestor_ids(stemmatic_ancestor_ids);
+	};
+	cout << "Optimizing substemmata (this may take a moment)..." << endl;
+	auto start = chrono::high_resolution_clock::now();
+	// Create threads for each witness
+	for (witness& wit : witnesses) {
+		threads.emplace_back(optimize_substemmata, ref(wit));
 	}
+
+	// Wait for all threads to finish
+	for (thread& t : threads) {
+		t.join();
+	}
+	auto end = chrono::high_resolution_clock::now();
+	chrono::duration<double> diff = end - start;
+	long long total_seconds = chrono::duration_cast<chrono::seconds>(diff).count();
+	long long hours = total_seconds / 3600;
+	long long minutes = (total_seconds % 3600) / 60;
+	long long seconds = total_seconds % 60;
+	cout << "Finished optimizing substemmata in " << hours << " hours, " << minutes << " minutes, " << seconds << " seconds" << endl;
 	cout << "Generating global stemma..." << endl;
 	//Construct the global stemma using the witnesses:
 	global_stemma gs = global_stemma(witnesses);

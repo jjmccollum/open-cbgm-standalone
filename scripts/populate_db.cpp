@@ -3,14 +3,21 @@
  *
  *  Created on: Jan 10, 2020
  *      Author: jjmccollum
+ *	Modified and parallelized: Jan 13, 2024
+ *		Contributor: dopeyduck
+ *
  */
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <list>
 #include <vector>
 #include <set>
 #include <unordered_map>
+#include <thread>
+#include <mutex>
+#include <chrono>
 
 #include "cxxopts.hpp"
 #include "pugixml.hpp"
@@ -560,16 +567,53 @@ int main(int argc, char* argv[]) {
 		});
 		app.set_list_wit(list_wit);
 	}
-	//Then initialize all of these witnesses:
-	//TODO: Parallelize this step
-	cout << "Initializing all witnesses (this may take a while)... " << endl;
-	list<string> list_wit = app.get_list_wit();
-	list<witness> witnesses = list<witness>();
-	for (string wit_id : list_wit) {
-		cout << "Calculating coherence for witness " << wit_id << "..." << endl;
-		witness wit = witness(wit_id, app, classic);
-		witnesses.push_back(wit);
-	}
+	
+	
+//Then initialize all of these witnesses:
+cout << "Initializing all witnesses (this may take a while)... " << endl;
+list<string> list_wit = app.get_list_wit();
+vector<thread> threads;
+mutex mtx;
+
+list<witness> witnesses;
+
+unsigned int num_threads = std::min(static_cast<unsigned int>(std::thread::hardware_concurrency()), static_cast<unsigned int>(list_wit.size()));
+
+auto it = list_wit.begin();
+auto start = std::chrono::high_resolution_clock::now();
+for (unsigned int i = 0; i < num_threads; ++i) {
+    threads.push_back(thread([&]() {
+        for (; it != list_wit.end(); ) {
+            string wit_id;
+            {
+                lock_guard<mutex> lock(mtx);
+                if (it == list_wit.end()) {
+                    break;
+                }
+                wit_id = *it;
+                ++it;
+            }
+			stringstream msg;
+            msg << "Calculating coherence for witness " << wit_id << "..." << endl;
+			cout << msg.str();
+            witness wit(wit_id, app, classic);
+            {
+                lock_guard<mutex> lock(mtx);
+                witnesses.push_back(wit);
+            }
+        }
+    }));
+}
+for (auto &t : threads) {
+    t.join();
+}
+auto end = chrono::high_resolution_clock::now();
+chrono::duration<double> diff = end-start;
+long long total_seconds = chrono::duration_cast<chrono::seconds>(diff).count();
+long long hours = total_seconds / 3600;
+long long minutes = (total_seconds % 3600) / 60;
+long long seconds = total_seconds % 60;
+cout << "Time taken: " << hours << " hours " << minutes << " minutes " << seconds << " seconds" << endl;
 	//Now open the output database:
 	cout << "Opening database..." << endl;
 	sqlite3 * output_db;
