@@ -9,6 +9,7 @@
  */
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <list>
 #include <vector>
@@ -569,8 +570,6 @@ int main(int argc, char* argv[]) {
 	
 	
 //Then initialize all of these witnesses:
-//Parallelize this step
-
 cout << "Initializing all witnesses (this may take a while)... " << endl;
 list<string> list_wit = app.get_list_wit();
 vector<thread> threads;
@@ -594,7 +593,9 @@ for (unsigned int i = 0; i < num_threads; ++i) {
                 wit_id = *it;
                 ++it;
             }
-            cout << "Calculating coherence for witness " << wit_id << "..." << endl;
+			stringstream msg;
+            msg << "Calculating coherence for witness " << wit_id << "..." << endl;
+			cout << msg.str();
             witness wit(wit_id, app, classic);
             {
                 lock_guard<mutex> lock(mtx);
@@ -603,18 +604,15 @@ for (unsigned int i = 0; i < num_threads; ++i) {
         }
     }));
 }
-
 for (auto &t : threads) {
     t.join();
 }
-auto end = std::chrono::high_resolution_clock::now();
-std::chrono::duration<double> diff = end-start;
-
-int total_seconds = std::chrono::duration_cast<std::chrono::seconds>(diff).count();
-int hours = total_seconds / 3600;
-int minutes = (total_seconds % 3600) / 60;
-int seconds = total_seconds % 60;
-
+auto end = chrono::high_resolution_clock::now();
+chrono::duration<double> diff = end-start;
+long long total_seconds = chrono::duration_cast<chrono::seconds>(diff).count();
+long long hours = total_seconds / 3600;
+long long minutes = (total_seconds % 3600) / 60;
+long long seconds = total_seconds % 60;
 cout << "Time taken: " << hours << " hours " << minutes << " minutes " << seconds << " seconds" << endl;
 	//Now open the output database:
 	cout << "Opening database..." << endl;

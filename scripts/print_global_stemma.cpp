@@ -19,6 +19,7 @@
 #include <set>
 #include <unordered_map>
 #include <thread>
+#include <chrono>
 
 #include "cxxopts.hpp"
 #include "roaring.hh"
@@ -270,33 +271,39 @@ int main(int argc, char* argv[]) {
 	cout << "Closing database..." << endl;
 	sqlite3_close(input_db);
 	cout << "Database closed." << endl;
-	cout << "Optimizing substemmata (this may take a moment)..." << endl;
 	// Create a vector to hold the threads
-vector<thread> threads;
+	vector<thread> threads;
+	// Define a lambda function to optimize the substemmata for a witness
+	auto optimize_substemmata = [](witness& wit) {
+		list<set_cover_solution> substemmata = wit.get_substemmata(0, true);
+		if (substemmata.empty()) {
+			return;
+		}
+		set_cover_solution substemma = substemmata.front();
+		list<string> stemmatic_ancestor_ids = list<string>();
+		for (set_cover_row row : substemma.rows) {
+			stemmatic_ancestor_ids.push_back(row.id);
+		}
+		wit.set_stemmatic_ancestor_ids(stemmatic_ancestor_ids);
+	};
+	cout << "Optimizing substemmata (this may take a moment)..." << endl;
+	auto start = chrono::high_resolution_clock::now();
+	// Create threads for each witness
+	for (witness& wit : witnesses) {
+		threads.emplace_back(optimize_substemmata, ref(wit));
+	}
 
-// Define a lambda function to optimize the substemmata for a witness
-auto optimize_substemmata = [](witness& wit) {
-    list<set_cover_solution> substemmata = wit.get_substemmata();
-    if (substemmata.empty()) {
-        return;
-    }
-    set_cover_solution substemma = substemmata.front();
-    list<string> stemmatic_ancestor_ids = list<string>();
-    for (set_cover_row row : substemma.rows) {
-        stemmatic_ancestor_ids.push_back(row.id);
-    }
-    wit.set_stemmatic_ancestor_ids(stemmatic_ancestor_ids);
-};
-
-// Create threads for each witness
-for (witness& wit : witnesses) {
-    threads.emplace_back(optimize_substemmata, std::ref(wit));
-}
-
-// Wait for all threads to finish
-for (thread& t : threads) {
-    t.join();
-}
+	// Wait for all threads to finish
+	for (thread& t : threads) {
+		t.join();
+	}
+	auto end = chrono::high_resolution_clock::now();
+	chrono::duration<double> diff = end - start;
+	long long total_seconds = chrono::duration_cast<chrono::seconds>(diff).count();
+	long long hours = total_seconds / 3600;
+	long long minutes = (total_seconds % 3600) / 60;
+	long long seconds = total_seconds % 60;
+	cout << "Finished optimizing substemmata in " << hours << " hours, " << minutes << " minutes, " << seconds << " seconds" << endl;
 	cout << "Generating global stemma..." << endl;
 	//Construct the global stemma using the witnesses:
 	global_stemma gs = global_stemma(witnesses);
