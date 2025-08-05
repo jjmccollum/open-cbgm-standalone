@@ -29,7 +29,7 @@ The binary executables for the open-cbgm standalone library are available for di
 To install the standalone interface on your system, clone this Git repository using the command
 
 ```
-git clone git://github.com/jjmccollum/open-cbgm-standalone.git
+git clone https://github.com/jjmccollum/open-cbgm-standalone.git
 ```
 
 You should now have the contents of the repository in an `open-cbgm-standalone` subdirectory of your current directory. From the command line, enter the new directory with the command
