@@ -21,7 +21,7 @@
 
 #include "cxxopts.hpp"
 #include "pugixml.hpp"
-#include "roaring.hh"
+#include <roaring/roaring.hh>
 #include "sqlite3.h"
 #include "witness.h"
 #include "apparatus.h"
@@ -540,7 +540,7 @@ int main(int argc, char* argv[]) {
 			output_db_name = args["output_db"].as<vector<string>>()[0];
 		}
 	}
-	catch (const cxxopts::OptionException & e) {
+	catch (const cxxopts::exceptions::exception & e) {
 		cerr << "Error parsing options: " << e.what() << endl;
 		exit(-1);
 	}
@@ -593,14 +593,17 @@ for (unsigned int i = 0; i < num_threads; ++i) {
                 wit_id = *it;
                 ++it;
             }
-			stringstream msg;
-            msg << "Calculating coherence for witness " << wit_id << "..." << endl;
-			cout << msg.str();
+			stringstream start_msg;
+            start_msg << "Calculating coherence for witness " << wit_id << "..." << endl;
+			cout << start_msg.str();
             witness wit(wit_id, app, classic);
             {
                 lock_guard<mutex> lock(mtx);
                 witnesses.push_back(wit);
             }
+			stringstream done_msg;
+			done_msg << "Done calculating coherence for witness " << wit_id << "." << endl;
+			cout << done_msg.str();
         }
     }));
 }

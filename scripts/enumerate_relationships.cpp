@@ -15,7 +15,7 @@
 #include <unordered_map>
 
 #include "cxxopts.hpp"
-#include "roaring.hh"
+#include <roaring/roaring.hh>
 #include "sqlite3.h"
 
 #include "enumerate_relationships_table.h"
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
 			filter_relationship_types = set<string>(acceptable_relationship_types);
 		}
 	}
-	catch (const cxxopts::OptionException & e) {
+	catch (const cxxopts::exceptions::exception & e) {
 		cerr << "Error parsing options: " << e.what() << endl;
 		exit(-1);
 	}

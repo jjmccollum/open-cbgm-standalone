@@ -2,7 +2,7 @@
 
 ![open-cbgm logo](https://github.com/jjmccollum/open-cbgm/blob/master/img/open-cbgm-logo.png)
 
-[![Version 2.0.0](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/jjmccollum/open-cbgm-standalone)
+[![Version 2.1.0](https://img.shields.io/badge/version-2.1.0-blue)](https://github.com/jjmccollum/open-cbgm-standalone)
 [![Build Status](https://github.com/jjmccollum/open-cbgm-standalone/actions/workflows/testing.yml/badge.svg)](https://github.com/jjmccollum/open-cbgm-standalone/actions/workflows/testing.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://choosealicense.com/licenses/mit/)
 
@@ -47,7 +47,7 @@ git submodule update --init --recursive
 Subsequently, if an update is made to the core library at a later time and you want to incorporate it, then enter the command
 
 ```
-git submodule update --remote
+git submodule update --remote --recursive
 ```
 
 Because the core library serializes graph outputs as `.dot` files, you will need to install graphviz (https://www.graphviz.org) to convert .dot files into image files. Platform-specific instructions for installing graphviz are provided below, and directions on how to get image files from the `.dot` outputs can be found in the "Usage" section below.
