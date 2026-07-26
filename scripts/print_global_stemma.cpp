@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <cmath>
 #include <string>
@@ -22,7 +23,7 @@
 #include <chrono>
 
 #include "cxxopts.hpp"
-#include "roaring.hh"
+#include <roaring/roaring.hh>
 #include "sqlite3.h"
 #include "witness.h"
 #include "global_stemma.h"
@@ -231,7 +232,7 @@ int main(int argc, char* argv[]) {
 			input_db_name = args["input_db"].as<vector<string>>()[0];
 		}
 	}
-	catch (const cxxopts::OptionException & e) {
+	catch (const cxxopts::exceptions::exception & e) {
 		cerr << "Error parsing options: " << e.what() << endl;
 		exit(-1);
 	}
@@ -275,8 +276,15 @@ int main(int argc, char* argv[]) {
 	vector<thread> threads;
 	// Define a lambda function to optimize the substemmata for a witness
 	auto optimize_substemmata = [](witness& wit) {
+		auto subprocess_start = chrono::high_resolution_clock::now();
+		stringstream start_msg;
+		stringstream done_msg;
+		start_msg << "Optimizing substemma for witness " << wit.get_id() << "..." << endl;
+		cout << start_msg.str();
 		list<set_cover_solution> substemmata = wit.get_substemmata(0, true);
 		if (substemmata.empty()) {
+			done_msg << "No substemma found for witness " << wit.get_id() << "." << endl;
+			cout << done_msg.str();
 			return;
 		}
 		set_cover_solution substemma = substemmata.front();
@@ -285,6 +293,11 @@ int main(int argc, char* argv[]) {
 			stemmatic_ancestor_ids.push_back(row.id);
 		}
 		wit.set_stemmatic_ancestor_ids(stemmatic_ancestor_ids);
+		auto subprocess_end = chrono::high_resolution_clock::now();
+		chrono::duration<double> subprocess_diff = subprocess_end - subprocess_start;
+		long long subprocess_total_seconds = chrono::duration_cast<chrono::seconds>(subprocess_diff).count();
+		done_msg << "Done optimizing substemma for witness " << wit.get_id() << " in " << subprocess_total_seconds << "s." << endl;
+		cout << done_msg.str();
 	};
 	cout << "Optimizing substemmata (this may take a moment)..." << endl;
 	auto start = chrono::high_resolution_clock::now();
@@ -292,7 +305,6 @@ int main(int argc, char* argv[]) {
 	for (witness& wit : witnesses) {
 		threads.emplace_back(optimize_substemmata, ref(wit));
 	}
-
 	// Wait for all threads to finish
 	for (thread& t : threads) {
 		t.join();

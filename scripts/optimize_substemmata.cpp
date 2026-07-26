@@ -17,7 +17,7 @@
 #include <limits>
 
 #include "cxxopts.hpp"
-#include "roaring.hh"
+#include <roaring/roaring.hh>
 #include "sqlite3.h"
 
 #include "optimize_substemmata_table.h"
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
 			wit_id = args["witness"].as<vector<string>>()[0];
 		}
 	}
-	catch (const cxxopts::OptionException & e) {
+	catch (const cxxopts::exceptions::exception & e) {
 		cerr << "Error parsing options: " << e.what() << endl;
 		exit(-1);
 	}
