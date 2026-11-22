@@ -338,9 +338,9 @@ void populate_genealogical_comparisons_table(sqlite3 * output_db, const list<wit
 		exit(1);
 	}
 	int row_id = 0;
-	for (witness primary_wit : witnesses) {
+	for (const witness & primary_wit : witnesses) {
 		string primary_wit_id = primary_wit.get_id();
-		for (witness secondary_wit : witnesses) {
+		for (const witness & secondary_wit : witnesses) {
 			string secondary_wit_id = secondary_wit.get_id();
 			genealogical_comparison comp = primary_wit.get_genealogical_comparison_for_witness(secondary_wit_id);
 			//Serialize the bitmaps into byte arrays:
